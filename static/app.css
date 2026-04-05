@@ -132,6 +132,11 @@ img {
     background: linear-gradient(135deg, var(--teal), #36c98f);
 }
 
+.avatar-image {
+    object-fit: cover;
+    padding: 0;
+}
+
 .avatar-lg {
     width: 46px;
     height: 46px;
@@ -616,7 +621,8 @@ button:hover,
 
 .card-grid,
 .service-grid,
-.feature-grid {
+.feature-grid,
+.step-grid {
     display: grid;
     gap: 16px;
 }
@@ -628,6 +634,10 @@ button:hover,
 .service-grid,
 .feature-grid {
     grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.step-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
 }
 
 .hero-grid {
@@ -951,6 +961,24 @@ textarea {
     box-shadow: var(--shadow);
 }
 
+.step-card.numbered {
+    display: grid;
+    gap: 12px;
+}
+
+.step-number {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    border-radius: 14px;
+    background: rgba(29, 158, 117, 0.12);
+    color: var(--teal);
+    font-weight: 800;
+    font-family: "Sora", sans-serif;
+}
+
 .profile-photo {
     display: grid;
     place-items: center;
@@ -1057,9 +1085,10 @@ textarea {
 
 .notification-card {
     position: relative;
-    display: grid;
-    grid-template-columns: 6px 56px 1fr;
-    gap: 16px;
+    display: flex;
+    flex-direction: row;
+    align-items: flex-start;
+    gap: 14px;
     padding: 18px;
     overflow: hidden;
 }
@@ -1082,8 +1111,9 @@ textarea {
 .note-icon {
     display: grid;
     place-items: center;
-    width: 56px;
-    height: 56px;
+    flex: 0 0 38px;
+    width: 38px;
+    height: 38px;
     border-radius: 16px;
     font-weight: 800;
     color: #fff;
@@ -1102,22 +1132,27 @@ textarea {
 }
 
 .notification-copy {
+    flex: 1;
     min-width: 0;
 }
 
-.notification-head,
-.notification-meta {
+.notification-top,
+.notification-bottom {
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 12px;
 }
 
-.notification-meta {
+.notification-top {
+    width: 100%;
+}
+
+.notification-bottom {
     margin-top: 12px;
 }
 
-.notification-copy p {
+.notification-message {
     margin: 12px 0 0;
 }
 
@@ -1129,7 +1164,7 @@ textarea {
 
 .profile-layout {
     display: grid;
-    grid-template-columns: 280px minmax(0, 1fr);
+    grid-template-columns: 320px minmax(0, 1fr);
     gap: 18px;
 }
 
@@ -1145,6 +1180,15 @@ textarea {
     justify-items: start;
 }
 
+.profile-hero h1 {
+    margin: 0;
+    line-height: 1.05;
+}
+
+.profile-hero p {
+    margin: 0;
+}
+
 .badge-row,
 .profile-stats {
     display: grid;
@@ -1154,10 +1198,17 @@ textarea {
 }
 
 .profile-stats div {
-    padding: 12px;
+    min-height: 88px;
+    padding: 12px 8px;
     border-radius: 14px;
     background: #f8fafc;
     border: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    text-align: center;
 }
 
 .profile-stats strong,
@@ -1166,9 +1217,35 @@ textarea {
 }
 
 .profile-stats strong {
-    font-size: 1.2rem;
-    margin-bottom: 4px;
+    font-size: 1.25rem;
+    margin: 0;
     font-family: "Sora", sans-serif;
+}
+
+.profile-stats span {
+    font-size: 0.82rem;
+    line-height: 1.1;
+    white-space: nowrap;
+}
+
+.profile-panel .avatar-xl {
+    width: 88px;
+    height: 88px;
+}
+
+.photo-upload-form {
+    display: grid;
+    gap: 10px;
+}
+
+.photo-row {
+    display: grid;
+    gap: 8px;
+}
+
+.photo-upload-form .btn-secondary {
+    width: 100%;
+    justify-content: center;
 }
 
 .full-width {
@@ -1404,6 +1481,7 @@ textarea {
     .card-grid,
     .service-grid,
     .feature-grid,
+    .step-grid,
     .hero-grid {
         grid-template-columns: repeat(2, minmax(0, 1fr));
     }
@@ -1458,6 +1536,7 @@ textarea {
     .card-grid,
     .service-grid,
     .feature-grid,
+    .step-grid,
     .hero-grid,
     .quick-actions-grid,
     .form-grid.two-col,
@@ -1479,11 +1558,13 @@ textarea {
     }
 
     .notification-card {
-        grid-template-columns: 6px 1fr;
+        padding: 16px 14px 16px 18px;
     }
 
-    .notification-card .note-icon {
-        display: none;
+    .notification-top,
+    .notification-bottom {
+        flex-direction: column;
+        align-items: flex-start;
     }
 }
 

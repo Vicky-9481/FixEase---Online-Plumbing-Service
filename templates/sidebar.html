@@ -12,7 +12,11 @@
     {% if current_user_data %}
         {% set initials = (current_user_data.username or 'U')[:2] | upper %}
         <div class="user-panel">
-            <div class="avatar-lg">{{ initials }}</div>
+            {% if current_user_data.profile_photo %}
+                <img class="avatar-lg avatar-image" src="{{ url_for('static', filename=current_user_data.profile_photo) }}" alt="{{ current_user_data.username }} profile photo">
+            {% else %}
+                <div class="avatar-lg">{{ initials }}</div>
+            {% endif %}
             <div class="user-copy">
                 <strong>{{ current_user_data.username }}</strong>
                 <span>{{ role_labels.get(current_user_data.role, current_user_data.role.title()) }}</span>

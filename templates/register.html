@@ -16,7 +16,7 @@
         {% if errors.form %}
             <div class="flash flash-danger">{{ errors.form }}</div>
         {% endif %}
-        <form method="POST" class="form-grid" data-role-form>
+        <form method="POST" enctype="multipart/form-data" class="form-grid" data-role-form>
             <div>
                 <label for="role">Role</label>
                 <select id="role" name="role" data-role-select>
@@ -36,6 +36,11 @@
                 <label for="email">Email</label>
                 <input id="email" name="email" type="email" value="{{ form_data.email }}" placeholder="name@example.com" class="{% if errors.email %}input-error{% endif %}" required data-required-when-visible="true">
                 {% if errors.email %}<span class="field-error">{{ errors.email }}</span>{% endif %}
+            </div>
+
+            <div>
+                <label for="profile_photo">Profile Photo</label>
+                <input id="profile_photo" name="profile_photo" type="file" accept="image/*">
             </div>
 
             <div>
@@ -79,15 +84,6 @@
                         <label for="license_number">License Number</label>
                         <input id="license_number" name="license_number" type="text" value="{{ form_data.license_number }}" placeholder="Professional license ID" class="{% if errors.license_number %}input-error{% endif %}" data-required-when-visible="true">
                         {% if errors.license_number %}<span class="field-error">{{ errors.license_number }}</span>{% endif %}
-                    </div>
-                    <div>
-                        <label for="availability_status">Availability</label>
-                        <select id="availability_status" name="availability_status" class="{% if errors.availability_status %}input-error{% endif %}" data-required-when-visible="true">
-                            {% for value, label in availability_options %}
-                                <option value="{{ value }}" {% if form_data.availability_status == value %}selected{% endif %}>{{ label }}</option>
-                            {% endfor %}
-                        </select>
-                        {% if errors.availability_status %}<span class="field-error">{{ errors.availability_status }}</span>{% endif %}
                     </div>
                     <div>
                         <label for="specialties">Specialty</label>

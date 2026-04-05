@@ -7,7 +7,7 @@
     <div>
         <span class="eyebrow">Communication</span>
         <h1>Notifications</h1>
-        <p>Review request updates, assignment changes, and job status alerts.</p>
+        <p>Stay on top of assignments, accepted jobs, progress updates, and service actions.</p>
     </div>
 </section>
 
@@ -18,22 +18,22 @@
             <div class="note-border"></div>
             <div class="note-icon {{ kind }}">
                 {% if kind == 'teal' %}
-                    {{ "A" }}
+                    A
                 {% elif kind == 'blue' %}
-                    {{ "C" }}
+                    C
                 {% else %}
-                    {{ "U" }}
+                    U
                 {% endif %}
             </div>
-            <div class="notification-copy">
-                <div class="notification-head">
+            <div class="notification-content">
+                <div class="notification-top">
                     <span class="badge {% if kind == 'teal' %}success{% elif kind == 'blue' %}accent{% else %}neutral{% endif %}">
                         {{ note.title or 'Update' }}
                     </span>
                     <small>{{ note.created_at.strftime("%d %b %Y %I:%M %p") }}</small>
                 </div>
-                <p>{{ note.message }}</p>
-                <div class="notification-meta">
+                <p class="notification-message">{{ note.message }}</p>
+                <div class="notification-bottom">
                     <span class="muted">Customer: {{ request_customer_name(note) or "N/A" }}</span>
                     <div class="notification-actions">
                         <span class="badge {% if note.is_read %}success{% else %}accent{% endif %}">{{ "Read" if note.is_read else "Unread" }}</span>

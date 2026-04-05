@@ -4,74 +4,44 @@
 {% block title %}FixEase | Smart Plumbing Service Platform{% endblock %}
 
 {% block content %}
-<section class="hero-grid reveal">
+<section class="hero-banner home-banner reveal">
     <div class="hero-copy">
         <span class="eyebrow">{{ app_tagline or "Smart Plumbing Service Platform" }}</span>
-        <h1 class="display-title">Find Trusted Plumbers Near You</h1>
-        <p>
-            Book reliable plumbing services in seconds. Verified professionals, real-time tracking,
-            and transparent pricing all in one modern marketplace.
-        </p>
-        <div class="hero-actions">
-            <a class="button" href="{{ url_for('request_service') }}">Book Service</a>
-            <a class="button alt" href="{{ url_for('view_plumbers') }}">View Plumbers</a>
-        </div>
-        <div class="hero-mini-grid">
-            <span class="badge neutral">Live request tracking</span>
-            <span class="badge neutral">Verified plumber network</span>
-            <span class="badge accent">Smart bookings with transparent pricing</span>
+        <h1>FixEase connects customers with trusted plumbing help.</h1>
+        <p>Book verified professionals, track every request, and manage the full service journey in one marketplace.</p>
+        <div class="banner-actions">
+            <a class="btn-primary" href="{{ url_for('request_service') }}">Book Service</a>
+            <a class="btn-secondary" href="{{ url_for('view_plumbers') }}">Browse Plumbers</a>
+            <a class="btn-secondary" href="{{ url_for('about') }}">About Us</a>
         </div>
     </div>
-    <aside class="hero-visual">
-        <div class="visual-illustration">
-            <img src="{{ url_for('static', filename='fixease-logo.svg') }}" alt="Plumbing service illustration" class="illustration-mark">
-            <div>
-                <strong>On-demand plumbing help</strong>
-                <p style="margin: 0.35rem 0 0;">Verified plumbers, transparent pricing, and live request tracking.</p>
-            </div>
+    <div class="hero-metrics">
+        <div class="metric-chip">
+            <span>Active Requests</span>
+            <strong>{{ stats.active_requests }}</strong>
         </div>
-        <div class="service-preview">
-            <div class="toolbar">
-                <div>
-                    <span class="badge">Marketplace ready</span>
-                    <h3 style="margin: 0.75rem 0 0.25rem;">Plumbing support that feels premium</h3>
-                </div>
-                <span class="badge neutral">24/7 visibility</span>
-            </div>
-            <div class="stack" style="margin-top: 1rem;">
-                <div class="visual-stat">
-                    <span>Requests</span>
-                    <strong>{{ stats.active_requests }}</strong>
-                </div>
-                <div class="visual-stat">
-                    <span>Verified plumbers</span>
-                    <strong>{{ stats.plumbers }}</strong>
-                </div>
-                <div class="visual-stat">
-                    <span>Completed jobs</span>
-                    <strong>{{ stats.completed_jobs }}</strong>
-                </div>
-            </div>
+        <div class="metric-chip">
+            <span>Verified Plumbers</span>
+            <strong>{{ stats.plumbers }}</strong>
         </div>
-        <div class="toolbar">
-            <div class="badge">Fast booking</div>
-            <div class="badge">Live updates</div>
-            <div class="badge">Service history</div>
+        <div class="metric-chip">
+            <span>Completed Jobs</span>
+            <strong>{{ stats.completed_jobs }}</strong>
         </div>
-    </aside>
+    </div>
 </section>
 
-<section class="panel reveal">
-    <div class="section-header">
+<section class="card section-card reveal">
+    <div class="section-head">
         <div>
-            <span class="eyebrow">How it works</span>
-            <h2 class="section-title">A simple service flow</h2>
+            <span class="eyebrow">How It Works</span>
+            <h2>4-step booking flow</h2>
         </div>
     </div>
-    <div class="card-grid">
+    <div class="step-grid">
         {% for step in steps %}
-            <article class="step-card">
-                <span class="step-icon">{{ ui_icon(step.icon) }}</span>
+            <article class="step-card numbered">
+                <span class="step-number">{{ step.number }}</span>
                 <h3>{{ step.title }}</h3>
                 <p>{{ step.description }}</p>
             </article>
@@ -79,11 +49,11 @@
     </div>
 </section>
 
-<section class="panel reveal" id="services">
-    <div class="section-header">
+<section class="card section-card reveal" id="services">
+    <div class="section-head">
         <div>
             <span class="eyebrow">Our Services</span>
-            <h2 class="section-title">Built for everyday plumbing needs</h2>
+            <h2>6 plumbing services customers request most</h2>
         </div>
     </div>
     <div class="service-grid">
@@ -91,96 +61,54 @@
             <article class="service-card">
                 <span class="service-icon">{{ ui_icon(service.icon) }}</span>
                 <h3>{{ service.title }}</h3>
-                <p class="line-clamp-2">{{ service.description }}</p>
+                <p>{{ service.description }}</p>
             </article>
         {% endfor %}
     </div>
 </section>
 
-<section class="panel reveal">
-    <div class="section-header">
+<section class="card section-card reveal">
+    <div class="section-head">
         <div>
-            <span class="eyebrow">Feature highlights</span>
-            <h2 class="section-title">Why FixEase feels like a modern marketplace</h2>
+            <span class="eyebrow">Feature Highlights</span>
+            <h2>Why FixEase feels like a marketplace</h2>
         </div>
     </div>
     <div class="feature-grid">
-        {% for item in highlights %}
+        {% for feature in highlights %}
             <article class="feature-card">
-                <span class="highlight-icon">{{ ui_icon("star" if loop.index == 1 else "track" if loop.index == 2 else "price" if loop.index == 3 else "secure" if loop.index == 4 else "history") }}</span>
-                <h3>{{ item }}</h3>
-                <p>
-                    {% if loop.index == 1 %}
-                        Browse only trusted professionals who are verified before they appear in the marketplace.
-                    {% elif loop.index == 2 %}
-                        Watch your booking move from requested to completed without needing to call for updates.
-                    {% elif loop.index == 3 %}
-                        Know what you’ll pay before the plumber starts the job.
-                    {% elif loop.index == 4 %}
-                        All bookings are tracked through secure login and role-based access.
-                    {% else %}
-                        Keep a clean record of requests, progress, and completed work for future reference.
-                    {% endif %}
-                </p>
+                <span class="highlight-icon">{{ ui_icon(feature.icon) }}</span>
+                <h3>{{ feature.title }}</h3>
+                <p>{{ feature.description }}</p>
             </article>
         {% endfor %}
     </div>
 </section>
 
-<section class="panel reveal">
-    <div class="section-header">
+<section class="card section-card reveal">
+    <div class="section-head">
         <div>
-            <span class="eyebrow">Featured plumbers</span>
-            <h2 class="section-title">Professionals customers can book with confidence</h2>
-        </div>
-        <a class="button alt" href="{{ url_for('view_plumbers') }}">Browse all plumbers</a>
-    </div>
-    {% if featured_plumbers %}
-        <div class="plumber-grid">
-            {% for plumber in featured_plumbers %}
-                <article class="plumber-card">
-                    <div class="toolbar">
-                        <div class="profile-photo">
-                            {{ plumber.name[:1].upper() }}{{ (plumber.name.split(' ')[1][:1].upper() if ' ' in plumber.name else plumber.name[1:2].upper()) }}
-                        </div>
-                        <span class="badge {% if plumber.availability_status == 'available' %}success{% else %}neutral{% endif %}">
-                            {{ plumber.availability_status.replace('_', ' ').title() }}
-                        </span>
-                    </div>
-                    <h3>{{ plumber.name }}</h3>
-                    <div class="profile-meta">
-                        <span class="badge neutral">{{ plumber.years_of_experience }} years experience</span>
-                        <span class="badge accent">{{ plumber.average_rating or "New" }}{% if plumber.average_rating %}/5{% endif %}</span>
-                    </div>
-                    <div class="stack">
-                        <div class="inline-note"><strong>Area:</strong> {{ plumber.service_area or "Multiple service zones" }}</div>
-                        <div class="inline-note"><strong>Specialty:</strong> {{ plumber.specialties or "General plumbing" }}</div>
-                        <div class="inline-note"><strong>Visit charge:</strong> Rs. {{ plumber.charges|int }}</div>
-                    </div>
-                    <div class="plumber-actions">
-                        <a class="button alt" href="{{ url_for('plumber_profile', plumber_id=plumber.id) }}">View Profile</a>
-                        <a class="button" href="{{ url_for('request_service', plumber_id=plumber.id) }}">Book Service</a>
-                    </div>
-                </article>
-            {% endfor %}
-        </div>
-    {% else %}
-        <div class="empty-state">No featured plumbers are available yet. Verified plumbers will appear here automatically.</div>
-    {% endif %}
-</section>
-
-<section class="panel reveal">
-    <div class="section-header">
-        <div>
-            <span class="eyebrow">Marketplace stats</span>
-            <h2 class="section-title">What the platform already tracks</h2>
+            <span class="eyebrow">Marketplace Stats</span>
+            <h2>Platform activity at a glance</h2>
         </div>
     </div>
-    <div class="stats-grid">
-        <article class="stat-card"><span class="muted">Customers</span><strong>{{ stats.customers }}</strong></article>
-        <article class="stat-card"><span class="muted">Plumbers</span><strong>{{ stats.plumbers }}</strong></article>
-        <article class="stat-card"><span class="muted">Completed Jobs</span><strong>{{ stats.completed_jobs }}</strong></article>
-        <article class="stat-card"><span class="muted">Active Requests</span><strong>{{ stats.active_requests }}</strong></article>
+    <div class="stats-grid grid-4">
+        <article class="stat-card">
+            <span class="stat-label">Customers</span>
+            <strong>{{ stats.customers }}</strong>
+        </article>
+        <article class="stat-card">
+            <span class="stat-label">Plumbers</span>
+            <strong>{{ stats.plumbers }}</strong>
+        </article>
+        <article class="stat-card">
+            <span class="stat-label">Active Requests</span>
+            <strong>{{ stats.active_requests }}</strong>
+        </article>
+        <article class="stat-card">
+            <span class="stat-label">Completed Jobs</span>
+            <strong>{{ stats.completed_jobs }}</strong>
+        </article>
     </div>
 </section>
 {% endblock %}

@@ -47,6 +47,15 @@ function setFieldState(field, active) {
   });
 }
 
+document.querySelectorAll("[data-photo-input]").forEach((input) => {
+  input.addEventListener("change", () => {
+    const form = input.closest("form");
+    if (form && input.files && input.files.length) {
+      form.submit();
+    }
+  });
+});
+
 if (registerForm) {
   const roleSelect = registerForm.querySelector("[data-role-select]");
   const customerSection = registerForm.querySelector("[data-role-panel='customer']");

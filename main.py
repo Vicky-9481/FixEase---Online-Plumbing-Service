@@ -1,6 +1,7 @@
 import os
 import csv
 import io
+from uuid import uuid4
 from datetime import date, datetime
 from urllib.parse import quote_plus
 
@@ -11,6 +12,7 @@ from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.exc import OperationalError
 from sqlalchemy import inspect, text
 from werkzeug.security import check_password_hash, generate_password_hash
+from werkzeug.utils import secure_filename
 
 load_dotenv(os.path.join(os.path.dirname(__file__), ".env"))
 
@@ -55,6 +57,92 @@ AVAILABILITY_OPTIONS = [
     ("busy", "Busy"),
     ("offline", "Offline"),
 ]
+HOME_STEPS = [
+    {
+        "number": "01",
+        "title": "Create Request",
+        "description": "Describe the issue, share your location, and choose a preferred date and time.",
+    },
+    {
+        "number": "02",
+        "title": "Smart Match",
+        "description": "FixEase finds the right plumber by area, availability, and specialty.",
+    },
+    {
+        "number": "03",
+        "title": "Track Progress",
+        "description": "Follow the job from requested to completed with live status updates and messages.",
+    },
+    {
+        "number": "04",
+        "title": "Review & Repeat",
+        "description": "Leave ratings, keep service history, and book again in just a few clicks.",
+    },
+]
+HOME_SERVICES = [
+    {
+        "icon": "pipe",
+        "title": "Pipe Leakage",
+        "description": "Fix hidden or visible leaks before they cause water damage and higher bills.",
+    },
+    {
+        "icon": "tool",
+        "title": "Tap Replacement",
+        "description": "Replace worn taps and fixtures with neat, long-lasting professional fitting.",
+    },
+    {
+        "icon": "drain",
+        "title": "Drain Unblocking",
+        "description": "Clear clogged drains and restore smooth water flow in kitchens and bathrooms.",
+    },
+    {
+        "icon": "tank",
+        "title": "Water Heater",
+        "description": "Repair, service, or replace heaters for safe and reliable hot water supply.",
+    },
+    {
+        "icon": "bath",
+        "title": "Bathroom Plumbing",
+        "description": "Handle bathroom fittings, flush systems, and everyday plumbing installations.",
+    },
+    {
+        "icon": "bolt",
+        "title": "Emergency Plumbing",
+        "description": "Get fast response support for urgent leaks, burst pipes, and emergency repairs.",
+    },
+]
+HOME_FEATURES = [
+    {
+        "icon": "secure",
+        "title": "Verified Professionals",
+        "description": "Only plumbers who pass profile verification appear in the marketplace.",
+    },
+    {
+        "icon": "track",
+        "title": "Live Tracking",
+        "description": "See every request progress from assignment through completion in real time.",
+    },
+    {
+        "icon": "price",
+        "title": "Transparent Pricing",
+        "description": "Understand the visit charge before you confirm a booking or assignment.",
+    },
+    {
+        "icon": "chat",
+        "title": "Messaging",
+        "description": "Keep request-specific conversations attached to the right job.",
+    },
+    {
+        "icon": "star",
+        "title": "Ratings",
+        "description": "Use feedback and ratings to select trusted plumbers with confidence.",
+    },
+    {
+        "icon": "history",
+        "title": "Service History",
+        "description": "All completed work stays available for future reference and repeat bookings.",
+    },
+]
 EMPTY_FORM_DATA = {
     "name": "",
     "username": "",
@@ -79,6 +167,7 @@ EMPTY_FORM_DATA = {
     "location": "",
     "description": "",
     "problem_image": "",
+    "profile_photo": "",
 }
 
 
@@ -131,6 +220,7 @@ class User(db.Model):
     phone = db.Column(db.String(20))
     city = db.Column(db.String(120))
     address = db.Column(db.String(255))
+    profile_photo = db.Column(db.String(255))
     created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
 
     customer_requests = db.relationship(
@@ -320,6 +410,25 @@ def verify_password(stored_password, raw_password):
         return False
 
 
+def save_profile_photo(file_storage, user_id):
+    if not file_storage or not file_storage.filename:
+        return None
+
+    filename = secure_filename(file_storage.filename)
+    if not filename:
+        return None
+
+    extension = os.path.splitext(filename)[1].lower()
+    if extension not in {".png", ".jpg", ".jpeg", ".webp", ".gif"}:
+        return None
+
+    upload_dir = os.path.join(app.static_folder, "uploads", "profile_photos")
+    os.makedirs(upload_dir, exist_ok=True)
+    stored_name = f"user_{user_id}_{uuid4().hex}{extension}"
+    file_storage.save(os.path.join(upload_dir, stored_name))
+    return f"uploads/profile_photos/{stored_name}"
+
+
 def redirect_for_role(user):
     if user.role == "admin":
         return redirect(url_for("admin_dashboard"))
@@ -374,6 +483,7 @@ def upgrade_schema():
             "phone": "VARCHAR(20) NULL",
             "city": "VARCHAR(120) NULL",
             "address": "VARCHAR(255) NULL",
+            "profile_photo": "VARCHAR(255) NULL",
             "created_at": "DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP",
         },
         "plumber": {
@@ -491,8 +601,12 @@ def inject_common_data():
     if user and user.role == "customer":
         sidebar_groups = [
             {
-                "title": "Overview",
-                "links": [nav_link("Dashboard", "customer.customer_dashboard", "user_dashboard")],
+                "title": "Main",
+                "links": [
+                    nav_link("Home", "home"),
+                    nav_link("Dashboard", "customer.customer_dashboard", "user_dashboard"),
+                    nav_link("About", "about"),
+                ],
             },
             {
                 "title": "Service Management",
@@ -518,8 +632,12 @@ def inject_common_data():
     elif user and user.role == "plumber":
         sidebar_groups = [
             {
-                "title": "Overview",
-                "links": [nav_link("Dashboard", "plumber_dashboard")],
+                "title": "Main",
+                "links": [
+                    nav_link("Home", "home"),
+                    nav_link("Dashboard", "plumber_dashboard"),
+                    nav_link("About", "about"),
+                ],
             },
             {
                 "title": "Job Management",
@@ -547,8 +665,12 @@ def inject_common_data():
     elif user and user.role == "admin":
         sidebar_groups = [
             {
-                "title": "Overview",
-                "links": [nav_link("Dashboard", "admin_dashboard")],
+                "title": "Main",
+                "links": [
+                    nav_link("Home", "home"),
+                    nav_link("Dashboard", "admin_dashboard"),
+                    nav_link("About", "about"),
+                ],
             },
             {
                 "title": "User Management",
@@ -579,9 +701,8 @@ def inject_common_data():
                 "title": "Main",
                 "links": [
                     nav_link("Home", "home"),
-                    nav_link("Services", "home"),
-                    nav_link("Plumbers", "view_plumbers"),
                     nav_link("About", "about"),
+                    nav_link("Plumbers", "view_plumbers"),
                 ],
             },
             {
@@ -595,7 +716,8 @@ def inject_common_data():
 
     page_title_map = {
         "home": "Home",
-        "about": "About",
+        "about": "About Us",
+        "home": "Home",
         "login": "Login",
         "register": "Register",
         "dashboard_router": "Dashboard",
@@ -663,14 +785,9 @@ def inject_common_data():
 
 
 @app.route("/")
+@app.route("/home")
 def home():
-    featured_plumbers = (
-        Plumber.query.filter_by(is_verified=True, is_active=True)
-        .order_by(Plumber.years_of_experience.desc(), Plumber.charges.asc())
-        .limit(3)
-        .all()
-    )
-    stats = {
+    marketplace_stats = {
         "customers": User.query.filter_by(role="customer").count(),
         "plumbers": Plumber.query.filter_by(is_active=True).count(),
         "completed_jobs": ServiceRequest.query.filter_by(status="completed").count(),
@@ -678,12 +795,49 @@ def home():
             ServiceRequest.status.in_(["requested", "accepted", "in_progress"])
         ).count(),
     }
-    return render_template("index.html", featured_plumbers=featured_plumbers, stats=stats)
+    return render_template(
+        "index.html",
+        steps=HOME_STEPS,
+        services=HOME_SERVICES,
+        highlights=HOME_FEATURES,
+        stats=marketplace_stats,
+    )
 
 
 @app.route("/about")
 def about():
-    return render_template("about.html", issue_types=ISSUE_TYPES)
+    core_values = [
+        {
+            "icon": "secure",
+            "title": "Trust First",
+            "description": "We keep verification, role-based access, and transparent history at the center of the platform.",
+        },
+        {
+            "icon": "track",
+            "title": "Visibility Always",
+            "description": "Bookings, assignments, and updates stay visible from request to completion.",
+        },
+        {
+            "icon": "price",
+            "title": "Clear Service",
+            "description": "Customers and plumbers both benefit from a simple, predictable service flow.",
+        },
+    ]
+    role_cards = [
+        {
+            "title": "Admin",
+            "description": "Manage users, verify plumbers, monitor activity, and keep the platform healthy.",
+        },
+        {
+            "title": "Customer",
+            "description": "Book plumbing help, track requests, receive updates, and leave feedback.",
+        },
+        {
+            "title": "Plumber",
+            "description": "Accept work, update job progress, manage availability, and build a reputation.",
+        },
+    ]
+    return render_template("about.html", core_values=core_values, role_cards=role_cards)
 
 
 @app.route("/dashboard")
@@ -700,13 +854,14 @@ def register():
         username = request.form["username"].strip()
         email = request.form["email"].strip().lower()
         password = request.form["password"]
-        confirm_password = request.form["confirm_password"]
+        confirm_password = request.form.get("confirm_password", "")
         phone = request.form.get("phone", "").strip()
         address = request.form.get("address", "").strip()
         role = request.form.get("role", "customer")
         admin_code = request.form.get("admin_code", "").strip()
+        profile_photo = request.files.get("profile_photo")
 
-        if password != confirm_password:
+        if role != "admin" and password != confirm_password:
             flash("Passwords do not match.", "danger")
             return redirect(url_for("register"))
 
@@ -729,6 +884,10 @@ def register():
         )
         db.session.add(new_user)
         db.session.flush()
+
+        photo_path = save_profile_photo(profile_photo, new_user.id)
+        if photo_path:
+            new_user.profile_photo = photo_path
 
         if role == "plumber":
             plumber = Plumber(
@@ -767,11 +926,17 @@ def login():
     if request.method == "POST":
         email = request.form["email"].strip().lower()
         password = request.form["password"]
+        profile_photo = request.files.get("profile_photo")
         user = User.query.filter_by(email=email).first()
 
         if user and verify_password(user.password, password):
             if user.password == password:
                 user.password = generate_password_hash(password)
+                db.session.commit()
+
+            photo_path = save_profile_photo(profile_photo, user.id)
+            if photo_path:
+                user.profile_photo = photo_path
                 db.session.commit()
 
             update_session(user)
@@ -849,6 +1014,7 @@ def update_profile():
     if not user:
         flash("Please log in to continue.", "danger")
         return redirect(url_for("login"))
+    profile_photo = request.files.get("profile_photo")
 
     user.username = request.form.get("name", user.username).strip() or user.username
     user.email = request.form.get("email", user.email).strip().lower() or user.email
@@ -862,6 +1028,10 @@ def update_profile():
         plumber.mobile_number = user.phone or plumber.mobile_number
         plumber.service_area = request.form.get("service_area", plumber.service_area or "").strip() or plumber.service_area
         plumber.bio = request.form.get("bio", plumber.bio or "").strip() or plumber.bio
+
+    photo_path = save_profile_photo(profile_photo, user.id)
+    if photo_path:
+        user.profile_photo = photo_path
 
     db.session.commit()
     flash("Profile updated successfully.", "success")
@@ -890,6 +1060,25 @@ def update_password():
     user.password = generate_password_hash(new_password)
     db.session.commit()
     flash("Password updated successfully.", "success")
+    return redirect(url_for("profile"))
+
+
+@app.route("/profile/photo", methods=["POST"])
+def update_profile_photo():
+    user = current_user()
+    if not user:
+        flash("Please log in to continue.", "danger")
+        return redirect(url_for("login"))
+
+    profile_photo = request.files.get("profile_photo")
+    photo_path = save_profile_photo(profile_photo, user.id)
+    if not photo_path:
+        flash("Please choose a valid image file.", "danger")
+        return redirect(url_for("profile"))
+
+    user.profile_photo = photo_path
+    db.session.commit()
+    flash("Profile photo updated successfully.", "success")
     return redirect(url_for("profile"))
 
 

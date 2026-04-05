@@ -4,42 +4,45 @@
 {% block title %}About FixEase{% endblock %}
 
 {% block content %}
-<section class="panel reveal">
-    <div class="section-header">
+<section class="hero-banner about-banner reveal">
+    <div class="hero-copy">
+        <span class="eyebrow">About Us</span>
+        <h1>Built to make plumbing service feel simple, reliable, and professional.</h1>
+        <p>FixEase is a marketplace-style platform that helps customers book verified plumbers and track jobs from start to finish.</p>
+    </div>
+</section>
+
+<section class="card section-card reveal">
+    <div class="section-head">
         <div>
-            <span class="eyebrow">{{ app_tagline or "Smart Plumbing Service Platform" }}</span>
-            <h1 class="dashboard-title">About FixEase</h1>
+            <span class="eyebrow">Core Values</span>
+            <h2>What we stand for</h2>
         </div>
     </div>
-    <p class="muted">
-        FixEase is a marketplace-style plumbing platform that makes it easy to discover verified plumbers,
-        book services, and follow each request from booking to completion.
-    </p>
+    <div class="support-grid">
+        {% for value in core_values %}
+            <article class="summary-card">
+                <span class="highlight-icon">{{ ui_icon(value.icon) }}</span>
+                <h3>{{ value.title }}</h3>
+                <p>{{ value.description }}</p>
+            </article>
+        {% endfor %}
+    </div>
 </section>
 
-<section class="split-grid reveal">
-    <article class="summary-card">
-        <span class="highlight-icon">{{ ui_icon("track") }}</span>
-        <h3>Clear service flow</h3>
-        <p>Customers create requests, plumbers accept work, and admins manage the full lifecycle without losing visibility.</p>
-    </article>
-    <article class="summary-card">
-        <span class="highlight-icon">{{ ui_icon("secure") }}</span>
-        <h3>Role-based access</h3>
-        <p>Customer, plumber, and admin dashboards stay focused on the exact tools each role needs.</p>
-    </article>
-    <article class="summary-card">
-        <span class="highlight-icon">{{ ui_icon("history") }}</span>
-        <h3>Service history</h3>
-        <p>Each completed booking stays attached to the account for tracking, feedback, and future reference.</p>
-    </article>
-</section>
-
-<section class="panel reveal">
-    <h2 class="section-title">Supported service types</h2>
-    <div class="chip-row">
-        {% for issue in issue_types %}
-            <span class="chip">{{ issue }}</span>
+<section class="card section-card reveal">
+    <div class="section-head">
+        <div>
+            <span class="eyebrow">Roles</span>
+            <h2>How each role uses FixEase</h2>
+        </div>
+    </div>
+    <div class="support-grid">
+        {% for role in role_cards %}
+            <article class="summary-card">
+                <h3>{{ role.title }}</h3>
+                <p>{{ role.description }}</p>
+            </article>
         {% endfor %}
     </div>
 </section>
