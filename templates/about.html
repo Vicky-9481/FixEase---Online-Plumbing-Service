@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% from "_icons.html" import ui_icon %}
+
+{% block title %}About FixEase{% endblock %}
+
+{% block content %}
+<section class="panel reveal">
+    <div class="section-header">
+        <div>
+            <span class="eyebrow">{{ app_tagline or "Smart Plumbing Service Platform" }}</span>
+            <h1 class="dashboard-title">About FixEase</h1>
+        </div>
+    </div>
+    <p class="muted">
+        FixEase is a marketplace-style plumbing platform that makes it easy to discover verified plumbers,
+        book services, and follow each request from booking to completion.
+    </p>
+</section>
+
+<section class="split-grid reveal">
+    <article class="summary-card">
+        <span class="highlight-icon">{{ ui_icon("track") }}</span>
+        <h3>Clear service flow</h3>
+        <p>Customers create requests, plumbers accept work, and admins manage the full lifecycle without losing visibility.</p>
+    </article>
+    <article class="summary-card">
+        <span class="highlight-icon">{{ ui_icon("secure") }}</span>
+        <h3>Role-based access</h3>
+        <p>Customer, plumber, and admin dashboards stay focused on the exact tools each role needs.</p>
+    </article>
+    <article class="summary-card">
+        <span class="highlight-icon">{{ ui_icon("history") }}</span>
+        <h3>Service history</h3>
+        <p>Each completed booking stays attached to the account for tracking, feedback, and future reference.</p>
+    </article>
+</section>
+
+<section class="panel reveal">
+    <h2 class="section-title">Supported service types</h2>
+    <div class="chip-row">
+        {% for issue in issue_types %}
+            <span class="chip">{{ issue }}</span>
+        {% endfor %}
+    </div>
+</section>
+{% endblock %}

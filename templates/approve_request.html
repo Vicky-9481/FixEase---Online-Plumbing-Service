@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Approve Request</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='approve_request.css') }}">
+</head>
+<body>
+    <h1>Approve Plumbing Service Request</h1>
+    <p>Customer: {{ request.customer.username }}</p>
+    <p>Description: {{ request.description }}</p>
+    <p>Status: {{ request.status }}</p>
+    <form action="{{ url_for('update_request_status', request_id=request.id) }}" method="POST">
+        <input type="hidden" name="status" value="accepted">
+        <button type="submit">Approve Request</button>
+    </form>
+</body>
+</html>

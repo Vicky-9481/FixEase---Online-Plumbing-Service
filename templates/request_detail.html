@@ -1,0 +1,179 @@
+{% extends "base.html" %}
+{% from "_icons.html" import ui_icon %}
+
+{% block title %}Request #{{ service_request.id }}{% endblock %}
+
+{% block content %}
+<section class="detail-shell reveal">
+    <div class="toolbar">
+        <div class="stack">
+            <span class="eyebrow">Service request</span>
+            <h1>Request #{{ service_request.id }}</h1>
+            <p class="muted">{{ service_request.issue_type or "General plumbing request" }}</p>
+        </div>
+        <span class="status {{ service_request.status }}">{{ status_styles[service_request.status] }}</span>
+    </div>
+    <div class="detail-meta">
+        <span><strong>Customer:</strong> {{ service_request.customer.username }}</span>
+        <span><strong>Plumber:</strong> {{ service_request.plumber.name if service_request.plumber else "Unassigned" }}</span>
+        <span><strong>Charge:</strong> Rs. {{ service_request.service_charge|int }}</span>
+        <span><strong>Date:</strong> {{ service_request.preferred_date or "Flexible" }}</span>
+        <span><strong>Time:</strong> {{ service_request.preferred_time or "Flexible" }}</span>
+    </div>
+    <p>{{ service_request.description }}</p>
+    {% if service_request.problem_image %}
+        <div class="detail-image-wrap">
+            <img src="{{ url_for('static', filename=service_request.problem_image) }}" alt="Uploaded problem image" class="detail-image">
+        </div>
+    {% endif %}
+    <p><strong>Location:</strong> {{ service_request.location or "Not shared" }}</p>
+    <div class="progress-timeline">
+        {% if service_request.status in ['cancelled', 'rejected'] %}
+            <div class="timeline-state interrupted">{{ status_styles[service_request.status] }}</div>
+        {% else %}
+            {% for step_key, step_label in request_progress_steps %}
+                <div class="timeline-step {% if request_stage_index(service_request.status) >= loop.index0 %}done{% endif %} {% if service_request.status == step_key %}current{% endif %}">
+                    <span class="timeline-dot"></span>
+                    <span>{{ step_label }}</span>
+                </div>
+            {% endfor %}
+        {% endif %}
+    </div>
+</section>
+
+<section class="split-grid reveal">
+    <div class="panel">
+        <div class="section-header">
+            <div>
+                <span class="eyebrow">{{ ui_icon("track") }}</span>
+                <h2 class="section-title">Status actions</h2>
+            </div>
+        </div>
+
+        {% if current_user_data.role == 'customer' and service_request.customer_id == current_user_data.id and service_request.status in ['requested', 'accepted'] %}
+            <form method="POST" action="{{ url_for('update_request_status', request_id=service_request.id) }}">
+                <input type="hidden" name="status" value="cancelled">
+                <button type="submit">Cancel Request</button>
+            </form>
+            <div class="market-divider"></div>
+            <form method="POST" action="{{ url_for('reschedule_request', request_id=service_request.id) }}" class="form-grid">
+                <div>
+                    <label for="preferred_date">Reschedule Date</label>
+                    <input id="preferred_date" name="preferred_date" type="date" min="{{ today }}" value="{{ service_request.preferred_date or '' }}">
+                </div>
+                <div>
+                    <label for="preferred_time">Reschedule Time</label>
+                    <input id="preferred_time" name="preferred_time" type="text" value="{{ service_request.preferred_time or '' }}">
+                </div>
+                <div class="span-full">
+                    <label for="location">Update Location</label>
+                    <input id="location" name="location" type="text" value="{{ service_request.location or '' }}">
+                </div>
+                <div class="span-full">
+                    <button type="submit">Reschedule Request</button>
+                </div>
+            </form>
+        {% endif %}
+
+        {% if current_user_data.role == 'plumber' and current_user_data.plumber_profile and service_request.plumber_id == current_user_data.plumber_profile.id %}
+            <div class="plumber-actions">
+                <form method="POST" action="{{ url_for('update_request_status', request_id=service_request.id) }}">
+                    <input type="hidden" name="status" value="accepted">
+                    <button type="submit">Mark Accepted</button>
+                </form>
+                <form method="POST" action="{{ url_for('update_request_status', request_id=service_request.id) }}">
+                    <input type="hidden" name="status" value="in_progress">
+                    <button type="submit">Start Work</button>
+                </form>
+                <form method="POST" action="{{ url_for('update_request_status', request_id=service_request.id) }}">
+                    <input type="hidden" name="status" value="completed">
+                    <button type="submit">Complete Job</button>
+                </form>
+                <form method="POST" action="{{ url_for('update_request_status', request_id=service_request.id) }}">
+                    <input type="hidden" name="status" value="rejected">
+                    <button type="submit">Reject Job</button>
+                </form>
+            </div>
+        {% endif %}
+
+        {% if current_user_data.role == 'admin' %}
+            <form method="POST" action="{{ url_for('admin_assign_request', request_id=service_request.id) }}" class="form-grid">
+                <div class="span-full">
+                    <label for="plumber_id">Assign plumber</label>
+                    <select id="plumber_id" name="plumber_id" required>
+                        <option value="">Choose plumber</option>
+                        {% for plumber in assignable_plumbers %}
+                            <option value="{{ plumber.id }}" {% if service_request.plumber_id == plumber.id %}selected{% endif %}>{{ plumber.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="span-full">
+                    <button type="submit">Assign Request</button>
+                </div>
+            </form>
+        {% endif %}
+
+        {% if current_user_data.role == 'customer' and service_request.status == 'completed' and not service_request.feedback %}
+            <div class="market-divider"></div>
+            <h3>Submit feedback</h3>
+            <form method="POST" action="{{ url_for('submit_feedback', request_id=service_request.id) }}" class="form-grid">
+                <div>
+                    <label for="rating">Rating</label>
+                    <select id="rating" name="rating">
+                        <option value="5">5</option>
+                        <option value="4">4</option>
+                        <option value="3">3</option>
+                        <option value="2">2</option>
+                        <option value="1">1</option>
+                    </select>
+                </div>
+                <div class="span-full">
+                    <label for="comment">Comment</label>
+                    <textarea id="comment" name="comment" placeholder="Share your service experience"></textarea>
+                </div>
+                <div class="span-full">
+                    <button type="submit">Submit Feedback</button>
+                </div>
+            </form>
+        {% elif service_request.feedback %}
+            <div class="helper-box">
+                <p><strong>Feedback:</strong> {{ service_request.feedback.rating }}/5</p>
+                <p class="muted">{{ service_request.feedback.comment or "No written feedback provided." }}</p>
+            </div>
+        {% endif %}
+    </div>
+
+    <div class="panel">
+        <div class="section-header">
+            <div>
+                <span class="eyebrow">{{ ui_icon("history") }}</span>
+                <h2 class="section-title">Conversation</h2>
+            </div>
+        </div>
+        {% if request_messages %}
+            {% for message in request_messages %}
+                <div class="message-bubble">
+                    <div class="toolbar">
+                        <strong>{{ message.sender.username }}</strong>
+                        <span class="badge neutral">{{ message.sender.role.title() }}</span>
+                    </div>
+                    <p class="muted">{{ message.body }}</p>
+                    <small>{{ message.created_at.strftime("%d %b %Y %I:%M %p") }}</small>
+                </div>
+            {% endfor %}
+        {% else %}
+            <div class="empty-state">No messages yet for this request.</div>
+        {% endif %}
+
+        <form method="POST" action="{{ url_for('request_message', request_id=service_request.id) }}" class="form-grid">
+            <div class="span-full">
+                <label for="body">Send message</label>
+                <textarea id="body" name="body" placeholder="Write an update or clarification" required></textarea>
+            </div>
+            <div class="span-full">
+                <button type="submit">Send Message</button>
+            </div>
+        </form>
+    </div>
+</section>
+{% endblock %}

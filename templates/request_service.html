@@ -1,0 +1,118 @@
+{% extends "base.html" %}
+{% from "_icons.html" import ui_icon %}
+
+{% block title %}Book Service{% endblock %}
+
+{% block content %}
+<section class="hero-grid reveal">
+    <div class="hero-copy">
+        <span class="eyebrow">Book plumbing support</span>
+        <h1 class="display-title">Raise a service request in minutes</h1>
+        <p>Choose the issue type, preferred timing, upload a photo if needed, and pick a plumber if you already know who you want.</p>
+        <div class="hero-actions">
+            <span class="badge neutral">Transparent pricing</span>
+            <span class="badge neutral">Live updates</span>
+            <span class="badge accent">Verified professionals</span>
+        </div>
+    </div>
+    <aside class="hero-visual">
+        <div class="stack">
+            <div class="visual-stat"><span>Issue types</span><strong>{{ issue_types|length }}</strong></div>
+            <div class="visual-stat"><span>Verified plumbers</span><strong>{{ plumbers|length }}</strong></div>
+            <div class="visual-stat"><span>Fast support</span><strong>24/7</strong></div>
+        </div>
+    </aside>
+</section>
+
+<section class="panel reveal">
+    <div class="section-header">
+        <div>
+            <span class="eyebrow">Request form</span>
+            <h2 class="section-title">Tell us what needs fixing</h2>
+        </div>
+    </div>
+    <form method="POST" enctype="multipart/form-data" class="form-grid">
+        <div>
+            <label for="issue_type">Issue Type</label>
+            <select id="issue_type" name="issue_type" required>
+                {% for issue in issue_types %}
+                    <option value="{{ issue }}" {% if form_data.issue_type == issue %}selected{% endif %}>{{ issue }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div>
+            <label for="plumber_id">Preferred Plumber</label>
+            <select id="plumber_id" name="plumber_id">
+                <option value="">Auto assign later</option>
+                {% for plumber in plumbers %}
+                    <option value="{{ plumber.id }}" {% if selected_plumber_id == plumber.id or form_data.plumber_id == plumber.id %}selected{% endif %}>
+                        {{ plumber.name }} | Rs. {{ plumber.charges|int }} | {{ plumber.availability_status.replace('_', ' ').title() }}
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
+        <div>
+            <label for="preferred_date">Preferred Date</label>
+            <input id="preferred_date" name="preferred_date" type="date" min="{{ today }}" value="{{ form_data.preferred_date }}">
+        </div>
+        <div>
+            <label for="preferred_time">Preferred Time</label>
+            <input id="preferred_time" name="preferred_time" type="text" value="{{ form_data.preferred_time }}" placeholder="Example: 10:30 AM - 12:00 PM">
+        </div>
+        <div class="span-full">
+            <label for="location">Location</label>
+            <input id="location" name="location" type="text" value="{{ form_data.location }}" placeholder="House number, street, area, city" required>
+            {% if errors.location %}<span class="field-error">{{ errors.location }}</span>{% endif %}
+        </div>
+        <div class="span-full">
+            <label for="description">Problem Description</label>
+            <textarea id="description" name="description" placeholder="Explain the issue in detail" required>{{ form_data.description }}</textarea>
+            {% if errors.description %}<span class="field-error">{{ errors.description }}</span>{% endif %}
+        </div>
+        <div class="span-full">
+            <label for="problem_image">Upload Problem Image</label>
+            <input id="problem_image" name="problem_image" type="file" accept="image/*">
+            {% if errors.problem_image %}<span class="field-error">{{ errors.problem_image }}</span>{% endif %}
+        </div>
+        <div class="span-full">
+            <button type="submit">Submit Request</button>
+        </div>
+    </form>
+</section>
+
+<section class="panel reveal">
+    <div class="section-header">
+        <div>
+            <span class="eyebrow">Available plumbers</span>
+            <h2 class="section-title">Choose from verified professionals</h2>
+        </div>
+        <a class="button alt" href="{{ url_for('view_plumbers') }}">View directory</a>
+    </div>
+    {% if plumbers %}
+        <div class="plumber-grid">
+            {% for plumber in plumbers %}
+                <article class="plumber-card">
+                    <div class="toolbar">
+                        <div class="profile-photo">{{ plumber.name[:1].upper() }}{{ plumber.name[1:2].upper() }}</div>
+                        <span class="badge {% if plumber.availability_status == 'available' %}success{% else %}neutral{% endif %}">
+                            {{ plumber.availability_status.replace('_', ' ').title() }}
+                        </span>
+                    </div>
+                    <h3>{{ plumber.name }}</h3>
+                    <div class="profile-meta">
+                        <span class="badge neutral">{{ plumber.years_of_experience }} years</span>
+                        <span class="badge accent">{{ plumber.average_rating or "New" }}{% if plumber.average_rating %}/5{% endif %}</span>
+                    </div>
+                    <div class="stack">
+                        <div class="inline-note">{{ ui_icon("location") }} {{ plumber.service_area or "Multiple areas" }}</div>
+                        <div class="inline-note">{{ ui_icon("specialty") }} {{ plumber.specialties or "General plumbing" }}</div>
+                        <div class="inline-note">{{ ui_icon("charge") }} Rs. {{ plumber.charges|int }} visit charge</div>
+                    </div>
+                </article>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="empty-state">No verified plumbers are available right now.</div>
+    {% endif %}
+</section>
+{% endblock %}

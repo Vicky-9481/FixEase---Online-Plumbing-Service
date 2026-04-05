@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+
+{% block title %}Login{% endblock %}
+
+{% block content %}
+<section class="auth-shell reveal">
+    <div class="auth-grid">
+        <div class="panel">
+            <span class="eyebrow">Welcome back</span>
+            <h1 class="dashboard-title">Login to FixEase</h1>
+            <p class="muted">
+                Choose your role, sign in with your email and password, and land in the correct dashboard instantly.
+            </p>
+            <div class="helper-box stack">
+                <div><strong>Customer</strong><div class="inline-note">Book and track service requests.</div></div>
+                <div><strong>Plumber</strong><div class="inline-note">Manage jobs and availability.</div></div>
+                <div><strong>Admin</strong><div class="inline-note">Verify plumbers and monitor operations.</div></div>
+            </div>
+        </div>
+        <div class="panel">
+            {% if errors.form %}
+                <div class="flash flash-danger">{{ errors.form }}</div>
+            {% endif %}
+            <form method="POST" class="form-grid">
+                <div>
+                    <label for="role">Role</label>
+                    <select id="role" name="role" class="{% if errors.role %}input-error{% endif %}">
+                        {% for role, label in role_labels.items() %}
+                            <option value="{{ role }}" {% if form_data.role == role %}selected{% endif %}>{{ label }}</option>
+                        {% endfor %}
+                    </select>
+                    {% if errors.role %}<span class="field-error">{{ errors.role }}</span>{% endif %}
+                </div>
+                <div>
+                    <label for="email">Email</label>
+                    <input id="email" name="email" type="email" value="{{ form_data.email }}" placeholder="name@example.com" class="{% if errors.email %}input-error{% endif %}" required>
+                    {% if errors.email %}<span class="field-error">{{ errors.email }}</span>{% endif %}
+                </div>
+                <div>
+                    <label for="password">Password</label>
+                    <input id="password" name="password" type="password" placeholder="Your password" class="{% if errors.password %}input-error{% endif %}" required>
+                    {% if errors.password %}<span class="field-error">{{ errors.password }}</span>{% endif %}
+                </div>
+                <div class="span-full">
+                    <button type="submit">Login</button>
+                </div>
+            </form>
+            <p class="muted">Need an account? <a href="{{ url_for('register') }}"><strong>Register here</strong></a>.</p>
+        </div>
+    </div>
+</section>
+{% endblock %}

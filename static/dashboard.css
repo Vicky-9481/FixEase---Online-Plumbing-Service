@@ -1,0 +1,143 @@
+/* General Layout */
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f9fafc;
+}
+
+.dashboard-header {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.dashboard-header h1 {
+    font-size: 2rem;
+    color: #2c3e50;
+}
+
+.dashboard-header .subheading {
+    font-size: 1rem;
+    color: #7f8c8d;
+}
+
+/* Table Styling */
+.table-wrapper {
+    overflow-x: auto;
+}
+
+.styled-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.95rem;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+    border-radius: 6px;
+    overflow: hidden;
+    background-color: #ffffff;
+}
+
+.styled-table thead tr {
+    background-color: #3498db;
+    color: #ffffff;
+    text-align: left;
+}
+
+.styled-table th,
+.styled-table td {
+    padding: 0.85rem 1rem;
+}
+
+.styled-table tbody tr {
+    border-bottom: 1px solid #dddddd;
+}
+
+.styled-table tbody tr:nth-of-type(even) {
+    background-color: #f3f9fc;
+}
+
+.styled-table tbody tr:hover {
+    background-color: #eef6fb;
+}
+
+/* Status Badges */
+.status-label {
+    padding: 0.3rem 0.6rem;
+    border-radius: 5px;
+    font-size: 0.8rem;
+    font-weight: bold;
+    color: white;
+}
+
+.status-label.Pending {
+    background-color: #f39c12;
+}
+
+.status-label.Approved {
+    background-color: #2ecc71;
+}
+
+.status-label.Rejected {
+    background-color: #e74c3c;
+}
+
+/* Action Buttons */
+.action-links {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.inline-form {
+    display: inline;
+}
+
+.link-approve,
+.link-reject {
+    background-color: transparent;
+    border: none;
+    font-weight: 500;
+    cursor: pointer;
+    padding: 0.3rem 0.7rem;
+    border-radius: 4px;
+    transition: background-color 0.3s;
+}
+
+.link-approve {
+    color: #27ae60;
+}
+
+.link-approve:hover {
+    background-color: #eafaf1;
+}
+
+.link-reject {
+    color: #c0392b;
+}
+
+.link-reject:hover {
+    background-color: #fdecea;
+}
+
+/* Footer */
+.dashboard-footer {
+    margin-top: 2rem;
+    text-align: center;
+}
+
+.dashboard-footer .home-link {
+    color: #3498db;
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.dashboard-footer .home-link:hover {
+    text-decoration: underline;
+}
+
+/* No Requests Text */
+.no-requests {
+    color: #888;
+    text-align: center;
+    font-size: 1rem;
+    margin-top: 2rem;
+}

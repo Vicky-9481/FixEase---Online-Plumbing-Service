@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+
+{% block title %}Add Plumber{% endblock %}
+
+{% block content %}
+<section class="auth-shell reveal">
+    <div class="panel">
+        <span class="eyebrow">Admin action</span>
+        <h1 class="dashboard-title">Create a plumber account</h1>
+        <p class="muted">This form creates both the login account and linked plumber profile in one pass.</p>
+    </div>
+
+    <div class="panel">
+        {% if errors.form %}
+            <div class="flash flash-danger">{{ errors.form }}</div>
+        {% endif %}
+        <form method="POST" class="form-grid">
+            <div>
+                <label for="username">Login Username</label>
+                <input id="username" name="username" type="text" value="{{ form_data.username }}" class="{% if errors.name or errors.email %}input-error{% endif %}" required>
+                {% if errors.name %}<span class="field-error">{{ errors.name }}</span>{% endif %}
+            </div>
+            <div>
+                <label for="email">Login Email</label>
+                <input id="email" name="email" type="email" value="{{ form_data.email }}" class="{% if errors.email %}input-error{% endif %}" required>
+                {% if errors.email %}<span class="field-error">{{ errors.email }}</span>{% endif %}
+            </div>
+            <div>
+                <label for="password">Temporary Password</label>
+                <input id="password" name="password" type="password" class="{% if errors.password %}input-error{% endif %}" required>
+                {% if errors.password %}<span class="field-error">{{ errors.password }}</span>{% endif %}
+            </div>
+            <div>
+                <label for="name">Display Name</label>
+                <input id="name" name="name" type="text" value="{{ form_data.name }}" class="{% if errors.name %}input-error{% endif %}" required>
+                {% if errors.name %}<span class="field-error">{{ errors.name }}</span>{% endif %}
+            </div>
+            <div>
+                <label for="mobile_number">Mobile Number</label>
+                <input id="mobile_number" name="mobile_number" type="tel" value="{{ form_data.mobile_number }}" class="{% if errors.phone %}input-error{% endif %}" required>
+                {% if errors.phone %}<span class="field-error">{{ errors.phone }}</span>{% endif %}
+            </div>
+            <div>
+                <label for="years_of_experience">Experience</label>
+                <input id="years_of_experience" name="years_of_experience" type="number" min="0" value="{{ form_data.years_of_experience }}" class="{% if errors.years_of_experience %}input-error{% endif %}" required>
+                {% if errors.years_of_experience %}<span class="field-error">{{ errors.years_of_experience }}</span>{% endif %}
+            </div>
+            <div>
+                <label for="charges">Visit Charge</label>
+                <input id="charges" name="charges" type="number" min="0" step="1" value="{{ form_data.charges }}" class="{% if errors.charges %}input-error{% endif %}" required>
+                {% if errors.charges %}<span class="field-error">{{ errors.charges }}</span>{% endif %}
+            </div>
+            <div>
+                <label for="license_number">License Number</label>
+                <input id="license_number" name="license_number" type="text" value="{{ form_data.license_number }}" class="{% if errors.license_number %}input-error{% endif %}" required>
+                {% if errors.license_number %}<span class="field-error">{{ errors.license_number }}</span>{% endif %}
+            </div>
+            <div>
+                <label for="availability_status">Availability</label>
+                <select id="availability_status" name="availability_status">
+                    {% for value, label in availability_options %}
+                        <option value="{{ value }}" {% if form_data.availability_status == value %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div>
+                <label for="service_area">Service Area</label>
+                <input id="service_area" name="service_area" type="text" value="{{ form_data.service_area }}" class="{% if errors.service_area %}input-error{% endif %}" placeholder="Town or locality" required>
+                {% if errors.service_area %}<span class="field-error">{{ errors.service_area }}</span>{% endif %}
+            </div>
+            <div>
+                <label for="specialties">Specialty</label>
+                <input id="specialties" name="specialties" type="text" value="{{ form_data.specialties }}" class="{% if errors.specialties %}input-error{% endif %}" placeholder="Drainage, leakage, fittings" required>
+                {% if errors.specialties %}<span class="field-error">{{ errors.specialties }}</span>{% endif %}
+            </div>
+            <div class="span-full">
+                <label for="bio">Bio</label>
+                <textarea id="bio" name="bio" placeholder="Add a short plumber profile summary">{{ form_data.bio }}</textarea>
+            </div>
+            <div class="span-full">
+                <button type="submit">Create Plumber Account</button>
+            </div>
+        </form>
+    </div>
+</section>
+{% endblock %}

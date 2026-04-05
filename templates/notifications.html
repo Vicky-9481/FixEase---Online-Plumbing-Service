@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+
+{% block title %}Notifications{% endblock %}
+
+{% block content %}
+<section class="panel reveal">
+    <div class="section-header">
+        <div>
+            <span class="eyebrow">Updates</span>
+            <h1 class="dashboard-title">Notifications</h1>
+            <p class="muted">Open a notification to jump straight to the relevant request or page.</p>
+        </div>
+    </div>
+</section>
+
+<section class="panel reveal">
+    {% if notifications %}
+        {% for note in notifications %}
+            <a class="notification-row" href="{{ url_for('open_notification', notification_id=note.id) }}">
+                <div class="toolbar">
+                    <div class="stack">
+                        <span class="badge">{{ note.title or 'Update' }}</span>
+                        <strong>{{ note.created_at.strftime("%d %b %Y %I:%M %p") }}</strong>
+                        <p class="muted">{{ note.message }}</p>
+                    </div>
+                    <div class="chip-row">
+                        {% if request_customer_name(note) %}
+                            <span class="badge neutral">Customer: {{ request_customer_name(note) }}</span>
+                        {% elif note.request_id %}
+                            <span class="badge neutral">Request linked</span>
+                        {% endif %}
+                        <span class="badge {% if note.is_read %}success{% else %}accent{% endif %}">{{ 'Read' if note.is_read else 'Open' }}</span>
+                    </div>
+                </div>
+            </a>
+        {% endfor %}
+    {% else %}
+        <div class="empty-state">You do not have any notifications yet.</div>
+    {% endif %}
+</section>
+{% endblock %}

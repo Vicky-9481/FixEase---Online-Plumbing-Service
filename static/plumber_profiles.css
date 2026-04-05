@@ -1,0 +1,283 @@
+/* General Body Styling */
+body {
+    font-family: 'Arial', sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f4f4f4;
+    color: #333;
+    display: flex;
+    flex-direction: column; /* Stack elements vertically */
+    min-height: 100vh; /* Ensure it takes the full viewport height */
+    padding: 0 20px;
+}
+
+/* Form Styling (Textarea and Submit Button at the Top) */
+form {
+    background-color: #ffffff;
+    border-radius: 8px;
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+    padding: 20px;
+    width: 40%;
+    max-width: 500px;
+    margin: 1px auto;
+    text-align: center;
+    position: relative; /* Changed from absolute to relative */
+    top: 0px;
+    z-index: 1; /* Ensure the form is on top */
+}
+
+/* Form Heading */
+form h1 {
+    font-size: 2em;
+    margin-bottom: 20px;
+    color: #333333;
+    font-weight: 600;
+}
+
+/* Textarea Styling */
+textarea {
+    width: 90%;
+    height: 100px;
+    padding: 15px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    font-size: 1em;
+    line-height: 1.5;
+    margin-bottom: 20px;
+    box-sizing: border-box;
+    resize: none;
+    transition: border-color 0.3s ease;
+}
+
+/* Textarea Focus Effect */
+textarea:focus {
+    border-color: #007BFF;
+    outline: none;
+}
+
+/* Button Styling */
+button {
+    background-color: #007BFF;
+    color: white;
+    font-size: 1.1em;
+    padding: 1px 25px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    width: 30%;
+    height: 30px;
+    margin-top: 20px;
+    transition: background-color 0.3s ease, transform 0.3s ease;
+}
+
+p{
+text-align: left;
+}
+h4{
+    text-align: left;
+}
+
+/* Button Hover Effect */
+button:hover {
+    background-color: #0056b3;
+    transform: translateY(-2px);
+}
+
+/* Button Focus Effect */
+button:focus {
+    outline: none;
+}
+
+/* Plumber Cards Container */
+.plumber-cards {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    /* justify-content: center; */
+    margin-top: 0px; /* Make sure there's space below the form */
+    /* padding: 0 20px; */
+    opacity: 0; /* Initially hidden */
+    transform: translateY(50px); /* Positioned below */
+    animation: slideUp 0.6s ease-out forwards; /* Slide up animation */
+}
+
+/* Animation for Plumber Cards */
+@keyframes slideUp {
+    0% {
+        opacity: 0;
+        transform: translateY(50px); /* Start from below */
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0); /* Move to its normal position */
+    }
+}
+
+/* Individual Plumber Card Styling */
+.plumber-card {
+    border: 1px solid #e0e0e0;
+    border-radius: 12px;
+    padding: 10px;
+    width: 17%;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+    background-color: #ffffff;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    height: 220px; /* Fix height to make the cards uniform */
+}
+
+/* Hover Effect to Elevate Card */
+.plumber-card:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+}
+
+/* Title Styling */
+.plumber-card h3 {
+    font-size: 1.5em;
+    margin-bottom: 12px;
+    font-weight: 600;
+    color: #333333;
+}
+
+/* Paragraph Styling */
+.plumber-card p {
+    font-size: 1em;
+    margin: 8px 0;
+    color: #555555;
+    line-height: 1.5;
+}
+
+/* Stronger emphasis on labels */
+.plumber-card p strong {
+    font-weight: 600;
+    color: #007BFF;
+}
+
+/* Link Styling */
+.plumber-card a {
+    color: #007BFF;
+    text-decoration: none;
+    font-size: 1.1em;
+    font-weight: 500;
+    margin-top: 15px;
+    display: inline-block;
+}
+
+.plumber-card a:hover {
+    text-decoration: underline;
+}
+
+/* Button inside Plumber Card */
+.select-button {
+    margin-top: 1px;
+    padding: 5px 10px;
+    background-color: #007BFF;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    font-size: 1em;
+    cursor: pointer;
+    width: 100%; /* Make the button take full width */
+    transition: background-color 0.3s ease, transform 0.3s ease;
+}
+
+/* Hover and Active Effect for Button */
+.select-button:hover {
+    background-color: #0056b3;
+    transform: translateY(-2px);
+}
+
+.select-button:active {
+    background-color: #004085;
+    transform: translateY(2px);
+}
+
+.select-button:focus {
+    outline: none;
+}
+
+
+/* Style the filter form */
+.filter-form {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    margin-bottom: 20px;
+    padding-right: 40px;
+    width: 400px;  /* Narrow form */
+}
+
+.filter-row {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 15px;
+    justify-content: flex-end;
+    width: 100%;
+    flex-wrap: nowrap;  /* Prevent wrapping */
+}
+
+.checkbox-group {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    white-space: nowrap;  /* Prevent text wrapping */
+}
+
+
+/* Basic styling for checkboxes */
+.checkbox-group input[type="checkbox"] {
+    display: inline-block;
+    margin-right: 5px;
+    border-color: 5px solid;
+}
+
+.checkbox-group label {
+    font-size: 14px;
+    cursor: pointer;
+    color: #333;
+}
+button[type="submit"] {
+    padding: 1px 10px;
+    border-radius: 5px;
+    background-color: #007BFF;
+    color: white;
+    border: none;
+    cursor: pointer;
+    font-size: 14px;
+    margin-top: 10px;
+    width:19%;
+}
+
+button[type="submit"]:hover {
+    background-color: #0056b3;
+}
+
+
+
+
+/* Responsive Design for Smaller Screens */
+@media (max-width: 768px) {
+    .plumber-cards {
+        gap: 15px;
+    }
+
+    .plumber-card {
+        width: 100%;
+        max-width: 300px;
+        height: auto;
+    }
+
+    form {
+        padding: 20px;
+        width: 80%;
+    }
+
+    button {
+        width: 100%;
+    }
+}
