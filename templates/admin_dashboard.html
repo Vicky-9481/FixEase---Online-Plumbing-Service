@@ -32,6 +32,10 @@
             </div>
         </div>
         <div class="quick-actions-grid">
+            <a class="quick-action" href="{{ url_for('admin_pending_plumbers') }}">
+                <span>{{ ui_icon("user-plus") }}</span>
+                <strong>Pending Plumbers</strong>
+            </a>
             <a class="quick-action" href="{{ url_for('admin_customers') }}">
                 <span>{{ ui_icon("user-plus") }}</span>
                 <strong>Customers</strong>

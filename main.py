@@ -1,6 +1,7 @@
 import os
 import csv
 import io
+import sys
 from uuid import uuid4
 from datetime import date, datetime
 from urllib.parse import quote_plus
@@ -10,7 +11,7 @@ from dotenv import load_dotenv
 from flask import Flask, Response, current_app, flash, redirect, render_template, request, session, url_for
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.exc import OperationalError
-from sqlalchemy import inspect, text
+from sqlalchemy import inspect, or_, text
 from werkzeug.security import check_password_hash, generate_password_hash
 from werkzeug.utils import secure_filename
 
@@ -208,6 +209,7 @@ app.config["SQLALCHEMY_DATABASE_URI"] = build_database_uri()
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
 db = SQLAlchemy(app)
+sys.modules.setdefault("main", sys.modules[__name__])
 
 
 class User(db.Model):
@@ -253,6 +255,7 @@ class Plumber(db.Model):
     mobile_number = db.Column(db.String(15), nullable=False)
     license_number = db.Column(db.String(100))
     user_id = db.Column(db.Integer, db.ForeignKey("user.id"), unique=True)
+    status = db.Column(db.String(20), default="pending", nullable=False)
     specialties = db.Column(db.String(255))
     availability_status = db.Column(db.String(50), default="available", nullable=False)
     service_area = db.Column(db.String(150))
@@ -286,6 +289,7 @@ class ServiceRequest(db.Model):
     location = db.Column(db.String(255))
     preferred_date = db.Column(db.Date)
     preferred_time = db.Column(db.String(50))
+    problem_image = db.Column(db.String(255))
     created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
 
@@ -429,6 +433,25 @@ def save_profile_photo(file_storage, user_id):
     return f"uploads/profile_photos/{stored_name}"
 
 
+def save_request_image(file_storage, token):
+    if not file_storage or not file_storage.filename:
+        return None
+
+    filename = secure_filename(file_storage.filename)
+    if not filename:
+        return None
+
+    extension = os.path.splitext(filename)[1].lower()
+    if extension not in {".png", ".jpg", ".jpeg", ".webp", ".gif"}:
+        return None
+
+    upload_dir = os.path.join(app.static_folder, "uploads", "request_images")
+    os.makedirs(upload_dir, exist_ok=True)
+    stored_name = f"request_{token}_{uuid4().hex}{extension}"
+    file_storage.save(os.path.join(upload_dir, stored_name))
+    return f"uploads/request_images/{stored_name}"
+
+
 def redirect_for_role(user):
     if user.role == "admin":
         return redirect(url_for("admin_dashboard"))
@@ -488,6 +511,7 @@ def upgrade_schema():
         },
         "plumber": {
             "user_id": "INT NULL",
+            "status": "VARCHAR(20) NOT NULL DEFAULT 'pending'",
             "license_number": "VARCHAR(100) NULL",
             "specialties": "VARCHAR(255) NULL",
             "availability_status": "VARCHAR(50) NOT NULL DEFAULT 'available'",
@@ -502,6 +526,7 @@ def upgrade_schema():
             "location": "VARCHAR(255) NULL",
             "preferred_date": "DATE NULL",
             "preferred_time": "VARCHAR(50) NULL",
+            "problem_image": "VARCHAR(255) NULL",
             "created_at": "DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP",
             "updated_at": "DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP",
         },
@@ -535,6 +560,12 @@ def upgrade_schema():
         connection.execute(text("UPDATE user SET role = 'customer' WHERE role IS NULL OR role = ''"))
         if "user_id" in {column["name"] for column in inspect(db.engine).get_columns("plumber")}:
             connection.execute(text("UPDATE plumber SET is_verified = TRUE WHERE user_id IS NULL"))
+        if "status" in {column["name"] for column in inspect(db.engine).get_columns("plumber")}:
+            connection.execute(
+                text(
+                    "UPDATE plumber SET status = CASE WHEN is_verified = 1 THEN 'verified' ELSE 'pending' END"
+                )
+            )
         connection.execute(text("UPDATE request SET status = 'requested' WHERE status = 'pending'"))
         connection.execute(text("UPDATE request SET status = 'accepted' WHERE status = 'approved'"))
         connection.execute(text("UPDATE request SET updated_at = created_at WHERE updated_at IS NULL"))
@@ -733,6 +764,12 @@ def inject_common_data():
         "plumber_settings": "Update Availability",
         "plumber_service_areas": "Service Areas",
         "admin_dashboard": "Dashboard",
+        "admin_users": "Customers",
+        "admin_plumbers": "Plumbers",
+        "admin_jobs": "All Requests",
+        "admin_pending_plumbers": "Pending Plumbers",
+        "admin_verify_plumber": "Verify Plumber",
+        "admin_assign_job": "Assign Job",
         "admin_customers": "Customers",
         "admin_plumber_records": "Plumbers",
         "admin_all_requests": "All Requests",
@@ -897,6 +934,7 @@ def register():
                 mobile_number=phone or request.form.get("mobile_number", "").strip() or "Not Provided",
                 license_number=request.form.get("license_number", "").strip() or None,
                 user_id=new_user.id,
+                status="pending",
                 specialties=request.form.get("specialties", "").strip() or None,
                 availability_status=request.form.get("availability_status", "available"),
                 service_area=request.form.get("service_area", "").strip() or None,
@@ -905,8 +943,14 @@ def register():
                 is_active=True,
             )
             db.session.add(plumber)
+            db.session.flush()
             for admin in get_admin_users():
-                notify_user(admin.id, f"New plumber registration pending verification: {new_user.username}.")
+                notify_user(
+                    admin.id,
+                    f"New plumber registration pending verification: {new_user.username}.",
+                    title="Plumber verification",
+                    target_url=url_for("admin_verify_plumber", plumber_id=plumber.id),
+                )
 
         db.session.commit()
         update_session(new_user)
@@ -1173,7 +1217,30 @@ def request_service():
         preferred_date = request.form.get("preferred_date")
         preferred_time = request.form.get("preferred_time", "").strip()
         selected_plumber_id = request.form.get("plumber_id", type=int)
+        problem_image_file = request.files.get("problem_image")
         from services.booking_service import create_service_request
+
+        problem_image_path = None
+        if problem_image_file and problem_image_file.filename:
+            preview_token = f"req_{session['user_id']}_{uuid4().hex}"
+            problem_image_path = save_request_image(problem_image_file, preview_token)
+            if problem_image_path is None:
+                flash("Please choose a valid image file (PNG, JPG, JPEG, WEBP, or GIF).", "danger")
+                return render_template(
+                    "request_service.html",
+                    plumbers=plumbers,
+                    issue_types=ISSUE_TYPES,
+                    selected_plumber_id=selected_plumber_id,
+                    form_data={
+                        "issue_type": issue_type,
+                        "description": description,
+                        "location": location,
+                        "preferred_date": preferred_date or "",
+                        "preferred_time": preferred_time or "",
+                        "plumber_id": selected_plumber_id or "",
+                    },
+                    errors={},
+                )
 
         service_request = create_service_request(
             customer_id=session["user_id"],
@@ -1183,6 +1250,7 @@ def request_service():
             preferred_date=datetime.strptime(preferred_date, "%Y-%m-%d").date() if preferred_date else None,
             preferred_time=preferred_time or None,
             plumber_id=selected_plumber_id,
+            problem_image=problem_image_path,
         )
         db.session.commit()
 
@@ -1613,7 +1681,7 @@ def admin_dashboard():
         return redirect(url_for("login"))
 
     all_requests = ServiceRequest.query.order_by(ServiceRequest.created_at.desc()).all()
-    pending_plumbers = Plumber.query.filter_by(is_verified=False).order_by(Plumber.created_at.desc()).all()
+    pending_plumbers = Plumber.query.filter_by(status="pending").order_by(Plumber.created_at.desc()).all()
     plumbers = Plumber.query.order_by(Plumber.created_at.desc()).all()
     users = User.query.order_by(User.created_at.desc()).all()
     requested_requests = [req for req in all_requests if req.status == "requested"]
@@ -1640,76 +1708,158 @@ def admin_dashboard():
     )
 
 
+@app.route("/admin/users")
 @app.route("/admin/customers")
 def admin_customers():
     if not role_required("admin"):
         flash("Admin access is required.", "danger")
         return redirect(url_for("login"))
 
-    customers = User.query.filter_by(role="customer").order_by(User.created_at.desc()).all()
-    module_items = []
+    query_text = request.args.get("q", "").strip()
+    sort_mode = request.args.get("sort", "newest")
+
+    customers_query = User.query.filter_by(role="customer")
+    if query_text:
+        like_term = f"%{query_text}%"
+        customers_query = customers_query.filter(
+            or_(
+                User.username.ilike(like_term),
+                User.email.ilike(like_term),
+                User.phone.ilike(like_term),
+                User.address.ilike(like_term),
+            )
+        )
+
+    customers = customers_query.all()
+
+    customer_rows = []
     for user in customers:
-        module_items.append(
+        request_count = len(user.customer_requests)
+        latest_request = max((req.created_at for req in user.customer_requests), default=None)
+        customer_rows.append(
             {
-                "title": user.username,
-                "subtitle": user.email,
-                "status": "customer",
-                "status_label": "Customer",
-                "status_class": "requested",
-                "lines": [
-                    f"Phone: {user.phone or 'Not provided'}",
-                    f"Joined: {user.created_at.strftime('%d %b %Y')}",
-                    f"Requests: {len(user.customer_requests)}",
-                ],
+                "id": user.id,
+                "name": user.username,
+                "email": user.email,
+                "phone": user.phone or "Not provided",
+                "city": user.city or "Not provided",
+                "joined": user.created_at,
+                "requests": request_count,
+                "latest_request": latest_request,
+                "status": "Active" if getattr(user, "is_active", True) else "Inactive",
+                "status_class": "success" if getattr(user, "is_active", True) else "neutral",
+                "profile_photo": user.profile_photo,
+                "initials": (user.username[:2] or "CU").upper(),
             }
         )
 
+    if sort_mode == "name":
+        customer_rows.sort(key=lambda item: item["name"].lower())
+    elif sort_mode == "requests":
+        customer_rows.sort(key=lambda item: (item["requests"], item["joined"] or datetime.min), reverse=True)
+    else:
+        customer_rows.sort(key=lambda item: item["joined"] or datetime.min, reverse=True)
+
+    stats = {
+        "customers": len(customer_rows),
+        "with_requests": len([row for row in customer_rows if row["requests"] > 0]),
+        "new_this_month": len([
+            row for row in customer_rows
+            if row["joined"] and row["joined"].year == datetime.utcnow().year and row["joined"].month == datetime.utcnow().month
+        ]),
+        "inactive": len([row for row in customer_rows if row["status"] == "Inactive"]),
+    }
+
     return render_template(
-        "module_list.html",
-        module_eyebrow="User management",
-        module_title="Customers",
-        module_description="Review customer accounts and activity.",
-        module_stats=[{"label": "Customers", "value": len(customers)}],
-        module_items=module_items,
+        "admin_customers.html",
+        customers=customer_rows,
+        stats=stats,
+        query_text=query_text,
+        sort_mode=sort_mode,
         empty_message="No customer accounts found.",
     )
 
 
+@app.route("/admin/plumbers")
 @app.route("/admin/plumber-records")
 def admin_plumber_records():
     if not role_required("admin"):
         flash("Admin access is required.", "danger")
         return redirect(url_for("login"))
 
-    plumbers = Plumber.query.order_by(Plumber.created_at.desc()).all()
-    module_items = []
+    query_text = request.args.get("q", "").strip()
+    sort_mode = request.args.get("sort", "newest")
+
+    plumbers_query = Plumber.query
+    if query_text:
+        like_term = f"%{query_text}%"
+        plumbers_query = plumbers_query.filter(
+            or_(
+                Plumber.name.ilike(like_term),
+                Plumber.service_area.ilike(like_term),
+                Plumber.specialties.ilike(like_term),
+                Plumber.mobile_number.ilike(like_term),
+                Plumber.license_number.ilike(like_term),
+                Plumber.status.ilike(like_term),
+            )
+        )
+
+    plumbers = plumbers_query.all()
+
+    plumber_rows = []
     for plumber in plumbers:
-        module_items.append(
+        status_value = plumber.status or ("verified" if plumber.is_verified else "pending")
+        plumber_rows.append(
             {
-                "title": plumber.name,
-                "subtitle": plumber.service_area or "Service area not set",
-                "status": "verified" if plumber.is_verified else "pending",
-                "status_label": "Verified" if plumber.is_verified else "Pending",
-                "status_class": "success" if plumber.is_verified else "accent",
-                "lines": [
-                    f"Experience: {plumber.years_of_experience} years",
-                    f"Rating: {plumber.average_rating or 'New'}",
-                    f"Active: {'Yes' if plumber.is_active else 'No'}",
-                ],
+                "id": plumber.id,
+                "name": plumber.name,
+                "email": plumber.user.email if plumber.user else "Not linked",
+                "mobile": plumber.mobile_number,
+                "area": plumber.service_area or "Not set",
+                "specialty": plumber.specialties or "General plumbing",
+                "joined": plumber.created_at,
+                "experience": plumber.years_of_experience,
+                "charge": int(plumber.charges or 0),
+                "rating": plumber.average_rating if plumber.average_rating is not None else "New",
+                "rating_sort": plumber.average_rating if plumber.average_rating is not None else -1,
+                "requests": len(plumber.requests),
+                "status": status_value,
+                "status_label": "Verified" if status_value == "verified" else "Rejected" if status_value == "rejected" else "Pending",
+                "status_class": "success" if status_value == "verified" else "rejected" if status_value == "rejected" else "accent",
+                "active_label": "Active" if plumber.is_active else "Inactive",
+                "active_class": "success" if plumber.is_active else "neutral",
+                "initials": (plumber.name[:2] or "PL").upper(),
+                "can_verify": status_value != "verified",
             }
         )
 
+    if sort_mode == "name":
+        plumber_rows.sort(key=lambda item: item["name"].lower())
+    elif sort_mode == "rating":
+        plumber_rows.sort(key=lambda item: (item["rating_sort"], item["joined"] or datetime.min), reverse=True)
+    elif sort_mode == "status":
+        plumber_rows.sort(key=lambda item: (item["status"], item["joined"] or datetime.min))
+    else:
+        plumber_rows.sort(key=lambda item: item["joined"] or datetime.min, reverse=True)
+
+    stats = {
+        "plumbers": len(plumber_rows),
+        "verified": len([row for row in plumber_rows if row["status"] == "verified"]),
+        "pending": len([row for row in plumber_rows if row["status"] == "pending"]),
+        "inactive": len([row for row in plumber_rows if row["active_label"] == "Inactive"]),
+    }
+
     return render_template(
-        "module_list.html",
-        module_eyebrow="User management",
-        module_title="Plumbers",
-        module_description="Verify and monitor plumber accounts.",
-        module_stats=[{"label": "Plumbers", "value": len(plumbers)}],
-        module_items=module_items,
+        "admin_plumbers.html",
+        plumbers=plumber_rows,
+        stats=stats,
+        query_text=query_text,
+        sort_mode=sort_mode,
         empty_message="No plumber accounts found.",
     )
 
 
+@app.route("/admin/jobs")
 @app.route("/admin/all-requests")
 def admin_all_requests():
     if not role_required("admin"):
@@ -1749,6 +1899,99 @@ def admin_all_requests():
         module_items=module_items,
         empty_message="No requests have been created yet.",
     )
+
+
+@app.route("/admin/plumbers/pending")
+def admin_pending_plumbers():
+    if not role_required("admin"):
+        flash("Admin access is required.", "danger")
+        return redirect(url_for("login"))
+
+    pending_plumbers = Plumber.query.filter_by(status="pending").order_by(Plumber.created_at.desc()).all()
+    module_items = []
+    for plumber in pending_plumbers:
+        module_items.append(
+            {
+                "title": plumber.name,
+                "subtitle": plumber.service_area or "Service area not set",
+                "status": "pending",
+                "status_label": "Pending",
+                "status_class": "accent",
+                "lines": [
+                    f"Experience: {plumber.years_of_experience} years",
+                    f"License: {plumber.license_number or 'Not provided'}",
+                    f"Mobile: {plumber.mobile_number or 'Not provided'}",
+                ],
+                "actions": [
+                    {"label": "Review", "url": url_for("admin_verify_plumber", plumber_id=plumber.id), "kind": "secondary"},
+                ],
+            }
+        )
+
+    return render_template(
+        "module_list.html",
+        module_eyebrow="Verification",
+        module_title="Pending Plumbers",
+        module_description="Review newly registered plumbers and decide whether to verify or reject them.",
+        module_stats=[{"label": "Pending Plumbers", "value": len(pending_plumbers)}],
+        module_items=module_items,
+        empty_message="No plumbers are waiting for verification.",
+    )
+
+
+@app.route("/admin/verify-plumber/<int:plumber_id>", methods=["GET", "POST"])
+def admin_verify_plumber(plumber_id):
+    if not role_required("admin"):
+        flash("Admin access is required.", "danger")
+        return redirect(url_for("login"))
+
+    plumber = db.session.get(Plumber, plumber_id)
+    if not plumber:
+        flash("Plumber not found.", "danger")
+        return redirect(url_for("admin_pending_plumbers"))
+
+    if request.method == "POST":
+        action = request.form.get("action", "verify")
+        if action == "reject":
+            plumber.status = "rejected"
+            plumber.is_verified = False
+            plumber.is_active = False
+            if plumber.user_id:
+                notify_user(
+                    plumber.user_id,
+                    "Your plumber profile was rejected by admin.",
+                    title="Plumber verification result",
+                    target_url=url_for("login"),
+                )
+            db.session.commit()
+            flash(f"Plumber {plumber.name} has been rejected.", "info")
+            return redirect(url_for("admin_pending_plumbers"))
+
+        plumber.status = "verified"
+        plumber.is_verified = True
+        plumber.is_active = True
+        if plumber.user_id:
+            notify_user(
+                plumber.user_id,
+                "Your plumber profile has been verified by admin.",
+                title="Plumber verification result",
+                target_url=url_for("plumber_dashboard"),
+            )
+        db.session.commit()
+        flash(f"Plumber {plumber.name} has been verified.", "success")
+        return redirect(url_for("admin_pending_plumbers"))
+
+    return render_template(
+        "admin_verify_plumber.html",
+        plumber=plumber,
+        pending_plumbers=Plumber.query.filter(Plumber.status == "pending", Plumber.id != plumber.id).order_by(Plumber.created_at.desc()).all(),
+        related_requests=ServiceRequest.query.filter_by(plumber_id=plumber.id).order_by(ServiceRequest.created_at.desc()).all(),
+    )
+
+
+@app.route("/admin/assign-job/<int:request_id>", methods=["POST"])
+def admin_assign_job(request_id):
+    return admin_assign_request(request_id)
 
 
 @app.route("/admin/job-monitoring")
@@ -1873,6 +2116,7 @@ def add_plumber():
                 mobile_number=mobile_number,
                 license_number=request.form.get("license_number", "").strip() or None,
                 user_id=user.id,
+                status="verified",
                 specialties=request.form.get("specialties", "").strip() or None,
                 availability_status=request.form.get("availability_status", "available"),
                 service_area=request.form.get("service_area", "").strip() or None,
@@ -1903,6 +2147,7 @@ def toggle_plumber_verification(plumber_id):
         plumber.user_id = None
 
     plumber.is_verified = not plumber.is_verified
+    plumber.status = "verified" if plumber.is_verified else "pending"
     status_text = "verified" if plumber.is_verified else "set to pending"
     if plumber.user_id:
         notify_user(plumber.user_id, f"Your plumber profile has been {status_text} by the admin.", title="Plumber profile updated")
@@ -1980,8 +2225,19 @@ def request_detail(request_id):
         flash("You do not have access to this request.", "danger")
         return redirect(url_for("dashboard_router"))
 
-    request_messages = Message.query.filter_by(request_id=service_request.id).order_by(Message.created_at.asc()).all()
-    for message in request_messages:
+    raw_messages = Message.query.filter_by(request_id=service_request.id).order_by(Message.created_at.asc(), Message.id.asc()).all()
+    request_messages = []
+    seen_message_keys = set()
+    for message in raw_messages:
+        dedupe_key = (
+            message.sender_id,
+            message.body.strip() if message.body else "",
+            message.created_at.strftime("%Y-%m-%d %H:%M"),
+        )
+        if dedupe_key in seen_message_keys:
+            continue
+        seen_message_keys.add(dedupe_key)
+        request_messages.append(message)
         if message.receiver_id == user.id and not message.is_read:
             message.is_read = True
     db.session.commit()
@@ -2016,25 +2272,39 @@ def request_message(request_id):
         return redirect(url_for("request_detail", request_id=request_id))
 
     subject = f"Request #{service_request.id} update"
-    recipients = set()
+    if user.role == "customer":
+        receiver_id = service_request.plumber.user_id if service_request.plumber and service_request.plumber.user_id else None
+    elif user.role == "plumber":
+        receiver_id = service_request.customer_id
+    else:
+        receiver_id = service_request.customer_id or (service_request.plumber.user_id if service_request.plumber and service_request.plumber.user_id else None)
+
+    if receiver_id:
+        send_platform_message(user.id, receiver_id, subject, body, request_id=service_request.id)
 
     if service_request.customer_id != user.id:
-        recipients.add(service_request.customer_id)
-    if service_request.plumber and service_request.plumber.user_id and service_request.plumber.user_id != user.id:
-        recipients.add(service_request.plumber.user_id)
-    if user.role != "admin":
-        for admin in get_admin_users():
-            if admin.id != user.id:
-                recipients.add(admin.id)
-
-    for receiver_id in recipients:
-        send_platform_message(user.id, receiver_id, subject, body, request_id=service_request.id)
         notify_user(
-            receiver_id,
+            service_request.customer_id,
             f"New message on request #{service_request.id}.",
             title="Message received",
             request_id=service_request.id,
         )
+    if service_request.plumber and service_request.plumber.user_id and service_request.plumber.user_id != user.id:
+        notify_user(
+            service_request.plumber.user_id,
+            f"New message on request #{service_request.id}.",
+            title="Message received",
+            request_id=service_request.id,
+        )
+    if user.role != "admin":
+        for admin in get_admin_users():
+            if admin.id != user.id:
+                notify_user(
+                    admin.id,
+                    f"New message on request #{service_request.id}.",
+                    title="Message received",
+                    request_id=service_request.id,
+                )
 
     db.session.commit()
     flash("Message sent successfully.", "success")

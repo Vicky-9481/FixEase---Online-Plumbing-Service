@@ -5,7 +5,17 @@ from .matching_service import find_best_plumber
 from .notification_service import create_notification
 
 
-def create_service_request(*, customer_id, issue_type, description, location, preferred_date=None, preferred_time=None, plumber_id=None):
+def create_service_request(
+    *,
+    customer_id,
+    issue_type,
+    description,
+    location,
+    preferred_date=None,
+    preferred_time=None,
+    plumber_id=None,
+    problem_image=None,
+):
     matched_plumber = db.session.get(Plumber, plumber_id) if plumber_id else find_best_plumber(area=location, specialty=issue_type)
 
     assigned_plumber = matched_plumber
@@ -16,6 +26,7 @@ def create_service_request(*, customer_id, issue_type, description, location, pr
         location=location,
         preferred_date=preferred_date,
         preferred_time=preferred_time,
+        problem_image=problem_image,
         plumber_id=assigned_plumber.id if assigned_plumber else plumber_id,
         service_charge=(assigned_plumber.charges if assigned_plumber else None),
         status="requested",

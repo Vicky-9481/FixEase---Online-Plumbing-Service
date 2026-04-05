@@ -56,6 +56,33 @@ document.querySelectorAll("[data-photo-input]").forEach((input) => {
   });
 });
 
+document.querySelectorAll("[data-request-image-input]").forEach((input) => {
+  input.addEventListener("change", () => {
+    const zone = input.closest("[data-request-upload-zone]");
+    const preview = zone ? zone.querySelector("[data-request-image-preview]") : null;
+    const previewImg = zone ? zone.querySelector("[data-request-image-preview-img]") : null;
+    const previewName = zone ? zone.querySelector("[data-request-image-name]") : null;
+    const file = input.files && input.files[0];
+
+    if (!zone || !preview || !previewImg || !previewName) return;
+
+    if (!file) {
+      preview.classList.add("is-hidden");
+      previewImg.removeAttribute("src");
+      previewName.textContent = "No file selected yet.";
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      previewImg.src = reader.result;
+      previewName.textContent = file.name;
+      preview.classList.remove("is-hidden");
+    };
+    reader.readAsDataURL(file);
+  });
+});
+
 if (registerForm) {
   const roleSelect = registerForm.querySelector("[data-role-select]");
   const customerSection = registerForm.querySelector("[data-role-panel='customer']");

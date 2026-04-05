@@ -1,0 +1,131 @@
+{% extends "base.html" %}
+{% from "_icons.html" import ui_icon %}
+
+{% block title %}Plumbers{% endblock %}
+
+{% block content %}
+<section class="hero-banner admin-banner reveal">
+    <div class="hero-copy">
+        <span class="eyebrow">User management</span>
+        <h1>Plumbers</h1>
+        <p>Review plumber accounts in a dense directory with verification status and quick actions.</p>
+    </div>
+    <div class="banner-actions">
+        <a class="btn-secondary" href="{{ url_for('admin_dashboard') }}">Back to Dashboard</a>
+        <a class="btn-primary" href="{{ url_for('admin_pending_plumbers') }}">Pending Queue</a>
+    </div>
+</section>
+
+<section class="stats-grid grid-4 reveal">
+    <article class="stat-card">
+        <span class="stat-label">Plumbers</span>
+        <strong>{{ stats.plumbers }}</strong>
+    </article>
+    <article class="stat-card">
+        <span class="stat-label">Verified</span>
+        <strong>{{ stats.verified }}</strong>
+    </article>
+    <article class="stat-card">
+        <span class="stat-label">Pending</span>
+        <strong>{{ stats.pending }}</strong>
+    </article>
+    <article class="stat-card">
+        <span class="stat-label">Inactive</span>
+        <strong>{{ stats.inactive }}</strong>
+    </article>
+</section>
+
+<section class="panel reveal table-panel">
+    <div class="section-head table-head">
+        <div>
+            <span class="eyebrow">Plumber directory</span>
+            <h2>All plumber accounts</h2>
+            <p class="muted">Search, sort, and review verification status across the plumber network.</p>
+        </div>
+        <form class="table-toolbar" method="GET">
+            <label class="table-search">
+                <span class="sr-only">Search plumbers</span>
+                <input type="search" name="q" value="{{ query_text }}" placeholder="Search name, area, specialty, phone">
+            </label>
+            <label class="table-sort">
+                <span class="sr-only">Sort plumbers</span>
+                <select name="sort">
+                    <option value="newest" {% if sort_mode == 'newest' %}selected{% endif %}>Newest</option>
+                    <option value="name" {% if sort_mode == 'name' %}selected{% endif %}>Name</option>
+                    <option value="rating" {% if sort_mode == 'rating' %}selected{% endif %}>Rating</option>
+                    <option value="status" {% if sort_mode == 'status' %}selected{% endif %}>Status</option>
+                </select>
+            </label>
+            <button class="btn-primary" type="submit">Apply</button>
+        </form>
+    </div>
+
+    {% if plumbers %}
+        <div class="data-table-wrap">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Plumber</th>
+                        <th>Contact</th>
+                        <th>Area</th>
+                        <th>Experience</th>
+                        <th>Charge</th>
+                        <th>Rating</th>
+                        <th>Status</th>
+                        <th class="actions-col">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for plumber in plumbers %}
+                        <tr>
+                            <td>
+                                <div class="table-user">
+                                    <div class="table-avatar">{{ plumber.initials }}</div>
+                                    <div class="table-user-copy">
+                                        <strong>{{ plumber.name }}</strong>
+                                        <span>{{ plumber.specialty }}</span>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="table-meta">
+                                    <span>{{ plumber.mobile }}</span>
+                                    <small>{{ plumber.email }}</small>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="table-meta">
+                                    <span>{{ plumber.area }}</span>
+                                    <small>{{ plumber.joined.strftime("%d %b %Y") if plumber.joined else "Not available" }}</small>
+                                </div>
+                            </td>
+                            <td>{{ plumber.experience }} yrs</td>
+                            <td>Rs. {{ plumber.charge }}</td>
+                            <td>
+                                <span class="table-count">{{ plumber.rating }}</span>
+                            </td>
+                            <td>
+                                <div class="table-meta">
+                                    <span class="badge {{ plumber.status_class }}">{{ plumber.status_label }}</span>
+                                    <small>{{ plumber.active_label }}</small>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="row-actions">
+                                    {% if plumber.status == 'verified' and plumber.active_label == 'Active' %}
+                                        <a class="btn-secondary" href="{{ url_for('plumber_profile', plumber_id=plumber.id) }}">View</a>
+                                    {% else %}
+                                        <a class="btn-secondary" href="{{ url_for('admin_verify_plumber', plumber_id=plumber.id) }}">Review</a>
+                                    {% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <div class="empty-state">{{ empty_message }}</div>
+    {% endif %}
+</section>
+{% endblock %}

@@ -56,13 +56,20 @@
             {% if errors.description %}<span class="field-error">{{ errors.description }}</span>{% endif %}
         </div>
 
-        <div class="upload-zone full-width">
-            <input id="problem_image" name="problem_image" type="file" accept="image/*">
+        <div class="upload-zone full-width" data-request-upload-zone>
+            <input id="problem_image" name="problem_image" type="file" accept="image/*" data-request-image-input>
             <label for="problem_image">
                 <span class="upload-icon">{{ ui_icon("track") }}</span>
                 <strong>Drag and drop files here</strong>
                 <span>or click to upload a photo of the issue</span>
             </label>
+            <div class="upload-preview is-hidden" data-request-image-preview>
+                <img alt="Selected plumbing issue preview" data-request-image-preview-img>
+                <div>
+                    <strong>Preview ready</strong>
+                    <p class="muted" data-request-image-name>No file selected yet.</p>
+                </div>
+            </div>
         </div>
 
         <div class="form-actions">

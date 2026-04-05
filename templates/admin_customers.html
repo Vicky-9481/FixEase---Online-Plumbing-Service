@@ -1,0 +1,115 @@
+{% extends "base.html" %}
+{% from "_icons.html" import ui_icon %}
+
+{% block title %}Customers{% endblock %}
+
+{% block content %}
+<section class="hero-banner admin-banner reveal">
+    <div class="hero-copy">
+        <span class="eyebrow">User management</span>
+        <h1>Customers</h1>
+        <p>Scan customer accounts in a dense table layout that stays readable even at large scale.</p>
+    </div>
+    <div class="banner-actions">
+        <a class="btn-secondary" href="{{ url_for('admin_dashboard') }}">Back to Dashboard</a>
+    </div>
+</section>
+
+<section class="stats-grid grid-4 reveal">
+    <article class="stat-card">
+        <span class="stat-label">Customers</span>
+        <strong>{{ stats.customers }}</strong>
+    </article>
+    <article class="stat-card">
+        <span class="stat-label">With Requests</span>
+        <strong>{{ stats.with_requests }}</strong>
+    </article>
+    <article class="stat-card">
+        <span class="stat-label">New This Month</span>
+        <strong>{{ stats.new_this_month }}</strong>
+    </article>
+    <article class="stat-card">
+        <span class="stat-label">Inactive</span>
+        <strong>{{ stats.inactive }}</strong>
+    </article>
+</section>
+
+<section class="panel reveal table-panel">
+    <div class="section-head table-head">
+        <div>
+            <span class="eyebrow">Customer directory</span>
+            <h2>All customer accounts</h2>
+            <p class="muted">Search, sort, and review customer contact details from one place.</p>
+        </div>
+        <form class="table-toolbar" method="GET">
+            <label class="table-search">
+                <span class="sr-only">Search customers</span>
+                <input type="search" name="q" value="{{ query_text }}" placeholder="Search name, email, phone, city">
+            </label>
+            <label class="table-sort">
+                <span class="sr-only">Sort customers</span>
+                <select name="sort">
+                    <option value="newest" {% if sort_mode == 'newest' %}selected{% endif %}>Newest</option>
+                    <option value="name" {% if sort_mode == 'name' %}selected{% endif %}>Name</option>
+                    <option value="requests" {% if sort_mode == 'requests' %}selected{% endif %}>Requests</option>
+                </select>
+            </label>
+            <button class="btn-primary" type="submit">Apply</button>
+        </form>
+    </div>
+
+    {% if customers %}
+        <div class="data-table-wrap">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Customer</th>
+                        <th>Contact</th>
+                        <th>City</th>
+                        <th>Joined</th>
+                        <th>Requests</th>
+                        <th>Status</th>
+                        <th class="actions-col">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for customer in customers %}
+                        <tr>
+                            <td>
+                                <div class="table-user">
+                                    {% if customer.profile_photo %}
+                                        <img class="table-avatar avatar-image" src="{{ url_for('static', filename=customer.profile_photo) }}" alt="{{ customer.name }} profile photo">
+                                    {% else %}
+                                        <div class="table-avatar">{{ customer.initials }}</div>
+                                    {% endif %}
+                                    <div class="table-user-copy">
+                                        <strong>{{ customer.name }}</strong>
+                                        <span>{{ customer.email }}</span>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="table-meta">
+                                    <span>{{ customer.phone }}</span>
+                                    <small>{{ customer.latest_request.strftime("%d %b %Y") if customer.latest_request else "No recent request" }}</small>
+                                </div>
+                            </td>
+                            <td>{{ customer.city }}</td>
+                            <td>{{ customer.joined.strftime("%d %b %Y") if customer.joined else "Not available" }}</td>
+                            <td><span class="table-count">{{ customer.requests }}</span></td>
+                            <td><span class="badge {{ customer.status_class|default('neutral') }}">{{ customer.status }}</span></td>
+                            <td>
+                                <div class="row-actions">
+                                    <a class="btn-secondary" href="mailto:{{ customer.email }}?subject=FixEase%20Support">Email</a>
+                                </div>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <div class="empty-state">{{ empty_message }}</div>
+    {% endif %}
+</section>
+{% endblock %}

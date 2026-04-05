@@ -1,0 +1,137 @@
+{% extends "base.html" %}
+{% from "_icons.html" import ui_icon %}
+
+{% block title %}Verify Plumber{% endblock %}
+
+{% block content %}
+<section class="page-header reveal verify-header">
+    <div>
+        <span class="eyebrow">Verification</span>
+        <h1>Plumber Verification</h1>
+        <p>Review this plumber profile and decide whether to verify or reject the account.</p>
+    </div>
+    <div class="badge neutral verify-badge">
+        {{ "Verified" if plumber.status == "verified" or plumber.is_verified else "Pending" }}
+    </div>
+</section>
+
+<section class="verify-layout reveal">
+    <article class="card verify-card">
+        <div class="verify-profile-head">
+            <div class="verify-avatar">{{ plumber.name[:2].upper() }}</div>
+            <div class="verify-profile-copy">
+                <div class="verify-name-row">
+                    <div>
+                        <h2>{{ plumber.name }}</h2>
+                        <p class="muted">{{ plumber.service_area or "Service area not set" }}</p>
+                    </div>
+                    <span class="badge {% if plumber.status == 'verified' or plumber.is_verified %}success{% else %}accent{% endif %}">
+                        {{ "Verified" if plumber.status == "verified" or plumber.is_verified else "Pending" }}
+                    </span>
+                </div>
+                <div class="profile-meta verify-meta">
+                    <span class="badge neutral">{{ plumber.license_number or "No license number" }}</span>
+                    <span class="badge accent">{{ plumber.specialties or "General plumbing" }}</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="verify-details-grid">
+            <div class="verify-detail">
+                {{ ui_icon("profile") }}
+                <div>
+                    <span>License</span>
+                    <strong>{{ plumber.license_number or "Not provided" }}</strong>
+                </div>
+            </div>
+            <div class="verify-detail">
+                {{ ui_icon("location") }}
+                <div>
+                    <span>Area</span>
+                    <strong>{{ plumber.service_area or "Not set" }}</strong>
+                </div>
+            </div>
+            <div class="verify-detail">
+                {{ ui_icon("charge") }}
+                <div>
+                    <span>Visit charge</span>
+                    <strong>Rs. {{ plumber.charges|int }}</strong>
+                </div>
+            </div>
+            <div class="verify-detail">
+                {{ ui_icon("track") }}
+                <div>
+                    <span>Experience</span>
+                    <strong>{{ plumber.years_of_experience }} years</strong>
+                </div>
+            </div>
+            <div class="verify-detail full-width">
+                {{ ui_icon("specialty") }}
+                <div>
+                    <span>Specialty</span>
+                    <strong>{{ plumber.specialties or "General plumbing" }}</strong>
+                </div>
+            </div>
+        </div>
+
+        <form method="POST" class="plumber-actions verify-actions">
+            <button class="btn-primary" type="submit" name="action" value="verify">Verify Plumber</button>
+            <button class="btn-secondary" type="submit" name="action" value="reject">Reject Plumber</button>
+            <a class="btn-secondary" href="{{ url_for('admin_pending_plumbers') }}">Back to Pending</a>
+        </form>
+    </article>
+
+    <article class="card verify-card">
+        <div class="section-head">
+            <div>
+                <span class="eyebrow">Pending Queue</span>
+                <h2>Other pending plumbers</h2>
+            </div>
+        </div>
+        {% if pending_plumbers %}
+            <div class="queue-stack">
+                {% for item in pending_plumbers %}
+                    <div class="queue-card">
+                        <div class="queue-avatar">{{ item.name[:2].upper() }}</div>
+                        <div class="queue-copy">
+                            <div class="queue-top">
+                                <strong>{{ item.name }}</strong>
+                                <small>{{ item.created_at.strftime("%d %b %Y") }}</small>
+                            </div>
+                            <p>{{ item.service_area or "No service area set" }}</p>
+                            <div class="queue-bottom">
+                                <span class="muted">{{ item.license_number or "No license number" }}</span>
+                                <a class="btn-secondary" href="{{ url_for('admin_verify_plumber', plumber_id=item.id) }}">Open</a>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="empty-state">No other plumbers are awaiting verification.</div>
+        {% endif %}
+    </article>
+</section>
+
+{% if related_requests %}
+<section class="panel reveal" style="margin-top: 16px;">
+    <div class="section-head">
+        <div>
+            <span class="eyebrow">History</span>
+            <h2>Requests linked to this plumber</h2>
+        </div>
+    </div>
+    <div class="plumber-grid">
+        {% for item in related_requests %}
+            <article class="plumber-card">
+                <div class="toolbar">
+                    <strong>Request #{{ item.id }}</strong>
+                    <span class="status {{ item.status }}">{{ status_styles[item.status] }}</span>
+                </div>
+                <p class="muted">{{ item.issue_type or "General" }} - {{ item.location or "Location not shared" }}</p>
+            </article>
+        {% endfor %}
+    </div>
+</section>
+{% endif %}
+{% endblock %}

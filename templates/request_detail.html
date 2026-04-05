@@ -97,7 +97,7 @@
         {% endif %}
 
         {% if current_user_data.role == 'admin' %}
-            <form method="POST" action="{{ url_for('admin_assign_request', request_id=service_request.id) }}" class="form-grid">
+            <form method="POST" action="{{ url_for('admin_assign_job', request_id=service_request.id) }}" class="form-grid">
                 <div class="span-full">
                     <label for="plumber_id">Assign plumber</label>
                     <select id="plumber_id" name="plumber_id" required>
@@ -143,35 +143,49 @@
         {% endif %}
     </div>
 
-    <div class="panel">
-        <div class="section-header">
+    <div class="panel chat-panel">
+        <div class="section-header chat-header">
             <div>
                 <span class="eyebrow">{{ ui_icon("history") }}</span>
                 <h2 class="section-title">Conversation</h2>
             </div>
+            <span class="badge neutral">{{ request_messages|length }} messages</span>
         </div>
-        {% if request_messages %}
-            {% for message in request_messages %}
-                <div class="message-bubble">
-                    <div class="toolbar">
-                        <strong>{{ message.sender.username }}</strong>
-                        <span class="badge neutral">{{ message.sender.role.title() }}</span>
-                    </div>
-                    <p class="muted">{{ message.body }}</p>
-                    <small>{{ message.created_at.strftime("%d %b %Y %I:%M %p") }}</small>
-                </div>
-            {% endfor %}
-        {% else %}
-            <div class="empty-state">No messages yet for this request.</div>
-        {% endif %}
 
-        <form method="POST" action="{{ url_for('request_message', request_id=service_request.id) }}" class="form-grid">
-            <div class="span-full">
-                <label for="body">Send message</label>
+        <div class="chat-thread">
+            {% if request_messages %}
+                {% for message in request_messages %}
+                    <div class="chat-row {% if current_user_data and message.sender_id == current_user_data.id %}outgoing{% else %}incoming{% endif %}">
+                        <div class="chat-avatar">
+                            {% if message.sender.role == 'customer' %}
+                                C
+                            {% elif message.sender.role == 'plumber' %}
+                                P
+                            {% else %}
+                                A
+                            {% endif %}
+                        </div>
+                        <div class="chat-bubble">
+                            <div class="chat-meta">
+                                <strong>{{ message.sender.username }}</strong>
+                                <span class="badge neutral">{{ message.sender.role.title() }}</span>
+                                <small>{{ message.created_at.strftime("%I:%M %p") }}</small>
+                            </div>
+                            <p>{{ message.body }}</p>
+                            <small class="chat-date">{{ message.created_at.strftime("%d %b %Y") }}</small>
+                        </div>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <div class="empty-state">No messages yet for this request.</div>
+            {% endif %}
+        </div>
+
+        <form method="POST" action="{{ url_for('request_message', request_id=service_request.id) }}" class="chat-composer">
+            <label for="body">Send message</label>
+            <div class="chat-compose-row">
                 <textarea id="body" name="body" placeholder="Write an update or clarification" required></textarea>
-            </div>
-            <div class="span-full">
-                <button type="submit">Send Message</button>
+                <button type="submit">Send</button>
             </div>
         </form>
     </div>
