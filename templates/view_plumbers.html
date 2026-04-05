@@ -4,31 +4,23 @@
 {% block title %}Plumbers{% endblock %}
 
 {% block content %}
-<section class="panel reveal">
-    <div class="section-header">
-        <div>
-            <span class="eyebrow">Plumber marketplace</span>
-            <h1 class="dashboard-title">Verified plumbers</h1>
-            <p class="muted">Search by area, specialty, rating, or availability to find the right professional faster.</p>
-        </div>
+<section class="page-header reveal">
+    <div>
+        <span class="eyebrow">Marketplace</span>
+        <h1>Verified Plumbers</h1>
+        <p>Filter by area and availability, then book the right professional for the job.</p>
     </div>
+</section>
 
-    <form method="GET" class="form-grid">
+<section class="card filter-bar reveal">
+    <form method="GET" class="filter-grid">
         <div>
             <label for="search">Search</label>
-            <input id="search" name="search" type="text" value="{{ filters.search }}" placeholder="Search plumber name, area, or specialty">
-        </div>
-        <div>
-            <label for="experience">Experience</label>
-            <select id="experience" name="experience">
-                <option value="">All levels</option>
-                <option value="junior" {% if filters.experience == 'junior' %}selected{% endif %}>Below 5 years</option>
-                <option value="senior" {% if filters.experience == 'senior' %}selected{% endif %}>5 years and above</option>
-            </select>
+            <input id="search" name="search" type="text" value="{{ filters.search }}" placeholder="Name, specialty, area">
         </div>
         <div>
             <label for="service_area">Service Area</label>
-            <input id="service_area" name="service_area" type="text" value="{{ filters.service_area }}" placeholder="Locality or city">
+            <input id="service_area" name="service_area" type="text" value="{{ filters.service_area }}" placeholder="City or locality">
         </div>
         <div>
             <label for="availability">Availability</label>
@@ -39,58 +31,38 @@
                 <option value="offline" {% if filters.availability == 'offline' %}selected{% endif %}>Offline</option>
             </select>
         </div>
-        <div>
-            <label for="specialty">Specialty</label>
-            <input id="specialty" name="specialty" type="text" value="{{ filters.specialty }}" placeholder="Leakage, drainage, fittings">
-        </div>
-        <div>
-            <label for="rating">Rating</label>
-            <select id="rating" name="rating">
-                <option value="">Any</option>
-                <option value="4" {% if filters.rating == '4' %}selected{% endif %}>4.0+</option>
-                <option value="4.5" {% if filters.rating == '4.5' %}selected{% endif %}>4.5+</option>
-            </select>
-        </div>
-        <div class="span-full">
-            <button type="submit">Apply Filters</button>
-            <a class="button alt" href="{{ url_for('view_plumbers') }}">Reset</a>
+        <div class="filter-submit">
+            <button class="btn-primary" type="submit">Apply</button>
         </div>
     </form>
 </section>
 
-<section class="plumber-grid reveal">
-    {% if plumbers %}
-        {% for plumber in plumbers %}
-            <article class="plumber-card">
-                <div class="toolbar">
-                    <div class="profile-photo">{{ plumber.name[:1].upper() }}{{ plumber.name[1:2].upper() }}</div>
-                    <span class="badge {% if plumber.availability_status == 'available' %}success{% else %}neutral{% endif %}">
-                        {{ plumber.availability_status.replace('_', ' ').title() }}
-                    </span>
-                </div>
+<section class="plumber-grid plumbers-grid reveal">
+    {% for plumber in plumbers %}
+        <article class="plumber-card marketplace-card">
+            <div class="plumber-top">
+                <div class="avatar-square">{{ plumber.name[:2].upper() }}</div>
+                <span class="badge {% if plumber.availability_status == 'available' %}success{% elif plumber.availability_status == 'busy' %}accent{% else %}neutral{% endif %}">
+                    {{ plumber.availability_status.replace('_', ' ').title() }}
+                </span>
+            </div>
+            <div class="plumber-body">
                 <h3>{{ plumber.name }}</h3>
-                <div class="profile-meta">
-                    <span class="badge neutral">{{ plumber.years_of_experience }} years</span>
-                    <span class="badge accent">{{ plumber.average_rating or "New" }}{% if plumber.average_rating %}/5{% endif %}</span>
+                <p class="muted">{{ plumber.specialties or "General plumbing" }}</p>
+                <div class="detail-stack">
+                    <div>{{ ui_icon("location") }} <span>{{ plumber.service_area or "Multiple areas" }}</span></div>
+                    <div>{{ ui_icon("track") }} <span>{{ plumber.years_of_experience }} years experience</span></div>
+                    <div>{{ ui_icon("charge") }} <span>Rs. {{ plumber.charges|int }} visit charge</span></div>
+                    <div>{{ ui_icon("star") }} <span>{{ plumber.average_rating or "New" }}{% if plumber.average_rating %}/5{% endif %}</span></div>
                 </div>
-                <div class="stack">
-                    <div class="inline-note">{{ ui_icon("location") }} {{ plumber.service_area or "Multiple areas" }}</div>
-                    <div class="inline-note">{{ ui_icon("specialty") }} {{ plumber.specialties or "General plumbing" }}</div>
-                    <div class="inline-note">{{ ui_icon("charge") }} Rs. {{ plumber.charges|int }} visit charge</div>
-                    <div class="inline-note">{{ ui_icon("profile") }} {{ plumber.license_number or "License on file" }}</div>
-                </div>
-                <div class="plumber-actions">
-                    <a class="button alt" href="{{ url_for('plumber_profile', plumber_id=plumber.id) }}">View Profile</a>
-                    {% if current_user_data and current_user_data.role == 'customer' %}
-                        <a class="button" href="{{ url_for('request_service', plumber_id=plumber.id) }}">Book Service</a>
-                    {% else %}
-                        <a class="button" href="{{ url_for('login') }}">Login to Book</a>
-                    {% endif %}
-                </div>
-            </article>
-        {% endfor %}
+            </div>
+            <div class="plumber-actions">
+                <a class="btn-secondary" href="{{ url_for('plumber_profile', plumber_id=plumber.id) }}">View Profile</a>
+                <a class="btn-primary" href="{{ url_for('request_service', plumber_id=plumber.id) }}">Book Service</a>
+            </div>
+        </article>
     {% else %}
         <div class="empty-state">No plumbers match the current filters.</div>
-    {% endif %}
+    {% endfor %}
 </section>
 {% endblock %}

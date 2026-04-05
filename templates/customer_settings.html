@@ -3,28 +3,28 @@
 {% block title %}Customer Settings{% endblock %}
 
 {% block content %}
-<section class="panel reveal">
-    <div class="section-header">
-        <div>
-            <span class="eyebrow">Account</span>
-            <h1 class="dashboard-title">Profile Settings</h1>
-            <p class="muted">Update your phone number and address for faster service coordination.</p>
-        </div>
+<section class="page-header reveal">
+    <div>
+        <span class="eyebrow">Account</span>
+        <h1>Profile Settings</h1>
+        <p>Update your contact details to keep service coordination smooth.</p>
     </div>
 </section>
 
-<section class="panel reveal">
-    <form method="POST" action="{{ url_for('update_customer_profile') }}" class="form-grid">
-        <div>
-            <label for="phone">Phone</label>
-            <input id="phone" name="phone" type="tel" value="{{ user.phone or '' }}" placeholder="Your mobile number">
+<section class="card form-card reveal">
+    <form method="POST" action="{{ url_for('update_customer_profile') }}" class="service-form">
+        <div class="form-grid two-col">
+            <div>
+                <label for="phone">Phone</label>
+                <input id="phone" name="phone" type="tel" value="{{ user.phone or '' }}" placeholder="Mobile number">
+            </div>
+            <div>
+                <label for="address">Address</label>
+                <input id="address" name="address" type="text" value="{{ user.address or '' }}" placeholder="House number, street, city">
+            </div>
         </div>
-        <div>
-            <label for="address">Address</label>
-            <input id="address" name="address" type="text" value="{{ user.address or '' }}" placeholder="House number, street, city">
-        </div>
-        <div class="span-full">
-            <button type="submit">Save Settings</button>
+        <div class="form-actions">
+            <button class="btn-primary" type="submit">Save Settings</button>
         </div>
     </form>
 </section>

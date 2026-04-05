@@ -1,54 +1,115 @@
 {% extends "base.html" %}
+{% from "_icons.html" import ui_icon %}
 
 {% block title %}Customer Dashboard{% endblock %}
 
 {% block content %}
-<section class="panel reveal">
-    <div class="section-header">
-        <div>
-            <span class="eyebrow">Customer overview</span>
-            <h1 class="dashboard-title">Welcome back, {{ user.username }}</h1>
-            <p class="muted">Track requests, manage your account, and book support from one place.</p>
+<section class="hero-banner customer-banner reveal">
+    <div class="hero-copy">
+        <span class="eyebrow">Customer overview</span>
+        <h1>Welcome back, {{ user.username }}</h1>
+        <p>Track every request, monitor active jobs, and book trusted plumbers from one place.</p>
+        <div class="banner-actions">
+            <a class="btn-primary" href="{{ url_for('request_service') }}">Book Service</a>
+            <a class="btn-secondary" href="{{ url_for('profile') }}">View Profile</a>
         </div>
-        <a class="button" href="{{ url_for('request_service') }}">Create Request</a>
+    </div>
+    <div class="hero-metrics">
+        <div class="metric-chip">
+            <span>Total Requests</span>
+            <strong>{{ stats.total_requests }}</strong>
+        </div>
+        <div class="metric-chip">
+            <span>Active Requests</span>
+            <strong>{{ stats.active_requests }}</strong>
+        </div>
+        <div class="metric-chip">
+            <span>Completed</span>
+            <strong>{{ stats.completed_requests }}</strong>
+        </div>
     </div>
 </section>
 
-<section class="stats-grid reveal">
-    <article class="stat-card"><span class="muted">Total Requests</span><strong>{{ stats.total_requests }}</strong></article>
-    <article class="stat-card"><span class="muted">Active Requests</span><strong>{{ stats.active_requests }}</strong></article>
-    <article class="stat-card"><span class="muted">Completed Jobs</span><strong>{{ stats.completed_requests }}</strong></article>
-    <article class="stat-card"><span class="muted">Pending Feedback</span><strong>{{ stats.feedback_pending }}</strong></article>
+<section class="stats-grid grid-4 reveal">
+    <article class="stat-card">
+        <span class="stat-label">Total Requests</span>
+        <strong>{{ stats.total_requests }}</strong>
+    </article>
+    <article class="stat-card">
+        <span class="stat-label">Active Requests</span>
+        <strong>{{ stats.active_requests }}</strong>
+    </article>
+    <article class="stat-card">
+        <span class="stat-label">Completed</span>
+        <strong>{{ stats.completed_requests }}</strong>
+    </article>
+    <article class="stat-card">
+        <span class="stat-label">Feedback Pending</span>
+        <strong>{{ stats.feedback_pending }}</strong>
+    </article>
 </section>
 
-<section class="panel reveal">
-    <div class="section-header">
-        <div>
-            <span class="eyebrow">Quick actions</span>
-            <h2 class="section-title">Shortcuts to your module groups</h2>
+<section class="dashboard-split reveal">
+    <article class="card section-card">
+        <div class="section-head">
+            <div>
+                <span class="eyebrow">Communication</span>
+                <h2>Latest Notifications</h2>
+            </div>
+            <a class="text-link" href="{{ url_for('notifications') }}">View all</a>
         </div>
-    </div>
-    <div class="card-grid">
-        <a class="summary-card action-card" href="{{ url_for('request_service') }}">
-            <h3>Create Request</h3>
-            <p>Submit a new plumbing request.</p>
-        </a>
-        <a class="summary-card action-card" href="{{ url_for('customer_requests') }}">
-            <h3>My Requests</h3>
-            <p>Review open and pending jobs.</p>
-        </a>
-        <a class="summary-card action-card" href="{{ url_for('customer_history') }}">
-            <h3>Service History</h3>
-            <p>See completed service records.</p>
-        </a>
-        <a class="summary-card action-card" href="{{ url_for('notifications') }}">
-            <h3>Notifications</h3>
-            <p>Check updates and reminders.</p>
-        </a>
-        <a class="summary-card action-card" href="{{ url_for('profile') }}">
-            <h3>Profile</h3>
-            <p>Manage your account details.</p>
-        </a>
-    </div>
+        <div class="notification-stack">
+            {% for note in notifications %}
+                <div class="mini-notification {% if not note.is_read %}unread{% endif %}">
+                    <span class="note-badge {% if 'accepted' in note.message|lower %}blue{% elif 'assigned' in note.message|lower %}teal{% else %}gray{% endif %}">
+                        {% if 'accepted' in note.message|lower %}Accepted{% elif 'assigned' in note.message|lower %}Assigned{% else %}Update{% endif %}
+                    </span>
+                    <div class="note-body">
+                        <strong>{{ note.title or "Notification" }}</strong>
+                        <p>{{ note.message }}</p>
+                        <small>{{ note.created_at.strftime("%d %b %Y %I:%M %p") }}</small>
+                    </div>
+                </div>
+            {% else %}
+                <div class="empty-state">No notifications yet.</div>
+            {% endfor %}
+        </div>
+    </article>
+
+    <article class="card section-card">
+        <div class="section-head">
+            <div>
+                <span class="eyebrow">Quick actions</span>
+                <h2>Shortcuts</h2>
+            </div>
+        </div>
+        <div class="quick-actions-grid">
+            <a class="quick-action" href="{{ url_for('request_service') }}">
+                <span>{{ ui_icon("track") }}</span>
+                <strong>Create Request</strong>
+            </a>
+            <a class="quick-action" href="{{ url_for('customer_requests') }}">
+                <span>{{ ui_icon("history") }}</span>
+                <strong>My Requests</strong>
+            </a>
+            <a class="quick-action" href="{{ url_for('customer_history') }}">
+                <span>{{ ui_icon("calendar-check") }}</span>
+                <strong>Service History</strong>
+            </a>
+            <a class="quick-action" href="{{ url_for('notifications') }}">
+                <span>{{ ui_icon("track") }}</span>
+                <strong>Notifications</strong>
+            </a>
+        </div>
+
+        <div class="profile-mini-widget">
+            <div class="avatar-xl">{{ user.username[:2].upper() }}</div>
+            <div>
+                <strong>{{ user.username }}</strong>
+                <p>{{ user.email }}</p>
+            </div>
+            <a class="text-link" href="{{ url_for('profile') }}">Edit</a>
+        </div>
+    </article>
 </section>
 {% endblock %}

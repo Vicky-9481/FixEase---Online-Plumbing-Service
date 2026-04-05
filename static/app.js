@@ -1,9 +1,8 @@
-const navToggle = document.querySelector("[data-nav-toggle]");
-const nav = document.querySelector(".top-nav");
+const sidebarToggle = document.querySelector("[data-sidebar-toggle]");
 
-if (navToggle && nav) {
-  navToggle.addEventListener("click", () => {
-    nav.classList.toggle("open");
+if (sidebarToggle) {
+  sidebarToggle.addEventListener("click", () => {
+    document.body.classList.toggle("sidebar-open");
   });
 }
 
@@ -17,12 +16,22 @@ if ("IntersectionObserver" in window && revealItems.length) {
         observer.unobserve(entry.target);
       }
     });
-  }, { threshold: 0.14 });
+  }, { threshold: 0.12 });
 
   revealItems.forEach((item) => observer.observe(item));
 } else {
   revealItems.forEach((item) => item.classList.add("visible"));
 }
+
+document.addEventListener("click", (event) => {
+  if (window.innerWidth > 768) return;
+  const sidebar = document.querySelector("[data-sidebar-shell]");
+  const toggle = event.target.closest("[data-sidebar-toggle]");
+  if (toggle || !sidebar) return;
+  if (!sidebar.contains(event.target) && document.body.classList.contains("sidebar-open")) {
+    document.body.classList.remove("sidebar-open");
+  }
+});
 
 const registerForm = document.querySelector("[data-role-form]");
 

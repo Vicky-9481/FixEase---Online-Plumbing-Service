@@ -1,0 +1,131 @@
+{% extends "base.html" %}
+{% from "_icons.html" import ui_icon %}
+
+{% block title %}Profile{% endblock %}
+
+{% block content %}
+<section class="profile-layout reveal">
+    <aside class="profile-panel card">
+        <div class="profile-hero">
+            <div class="avatar-xl avatar-ring">{{ user.username[:2].upper() }}</div>
+            <div>
+                <span class="eyebrow">Account</span>
+                <h1>{{ user.username }}</h1>
+                <p>{{ user.email }}</p>
+            </div>
+        </div>
+
+        <div class="badge-row">
+            <span class="badge success">{{ role_labels.get(user.role, user.role.title()) }}</span>
+            {% if user.city %}
+                <span class="badge neutral">{{ user.city }}</span>
+            {% endif %}
+        </div>
+
+        <div class="profile-stats">
+            <div>
+                <strong>{{ profile_stats.requests }}</strong>
+                <span>Requests</span>
+            </div>
+            <div>
+                <strong>{{ profile_stats.completed }}</strong>
+                <span>Completed</span>
+            </div>
+            <div>
+                <strong>{{ profile_stats.reviews }}</strong>
+                <span>Reviews</span>
+            </div>
+        </div>
+
+        <a class="btn-secondary full-width" href="{{ url_for('profile') }}">Edit Profile Photo</a>
+
+        {% if recent_activity %}
+            <div class="profile-activity">
+                <h3>Recent activity</h3>
+                {% for item in recent_activity %}
+                    <div class="activity-row">
+                        <strong>#{{ item.id }}</strong>
+                        <span class="muted">{{ item.issue_type or 'General' }}</span>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    </aside>
+
+    <section class="profile-main">
+        <article class="card form-card">
+            <div class="section-head">
+                <div>
+                    <span class="eyebrow">Profile</span>
+                    <h2>Personal Information</h2>
+                </div>
+            </div>
+            <form method="POST" action="{{ url_for('update_profile') }}" class="service-form">
+                <div class="form-grid two-col">
+                    <div>
+                        <label for="name">Name</label>
+                        <input id="name" name="name" type="text" value="{{ user.username }}" required>
+                    </div>
+                    <div>
+                        <label for="email">Email</label>
+                        <input id="email" name="email" type="email" value="{{ user.email }}" required>
+                    </div>
+                    <div>
+                        <label for="phone">Phone</label>
+                        <input id="phone" name="phone" type="tel" value="{{ user.phone or '' }}" placeholder="Mobile number">
+                    </div>
+                    <div>
+                        <label for="city">City</label>
+                        <input id="city" name="city" type="text" value="{{ user.city or '' }}" placeholder="Your city">
+                    </div>
+                    <div class="full-width">
+                        <label for="address">Address</label>
+                        <input id="address" name="address" type="text" value="{{ user.address or '' }}" placeholder="Street, area, landmark">
+                    </div>
+                    {% if user.role == 'plumber' %}
+                        <div>
+                            <label for="service_area">Service Area</label>
+                            <input id="service_area" name="service_area" type="text" value="{{ user.plumber_profile.service_area if user.plumber_profile else '' }}" placeholder="Service area">
+                        </div>
+                        <div class="full-width">
+                            <label for="bio">Bio</label>
+                            <textarea id="bio" name="bio" rows="4" placeholder="Short professional summary">{{ user.plumber_profile.bio if user.plumber_profile else '' }}</textarea>
+                        </div>
+                    {% endif %}
+                </div>
+                <div class="form-actions">
+                    <button class="btn-primary" type="submit">Save Changes</button>
+                </div>
+            </form>
+        </article>
+
+        <article class="card form-card">
+            <div class="section-head">
+                <div>
+                    <span class="eyebrow">Security</span>
+                    <h2>Change Password</h2>
+                </div>
+            </div>
+            <form method="POST" action="{{ url_for('update_password') }}" class="service-form">
+                <div class="form-grid two-col">
+                    <div>
+                        <label for="current_password">Current Password</label>
+                        <input id="current_password" name="current_password" type="password" required>
+                    </div>
+                    <div>
+                        <label for="new_password">New Password</label>
+                        <input id="new_password" name="new_password" type="password" required>
+                    </div>
+                    <div class="full-width">
+                        <label for="confirm_password">Confirm Password</label>
+                        <input id="confirm_password" name="confirm_password" type="password" required>
+                    </div>
+                </div>
+                <div class="form-actions">
+                    <button class="btn-primary" type="submit">Update Password</button>
+                </div>
+            </form>
+        </article>
+    </section>
+</section>
+{% endblock %}

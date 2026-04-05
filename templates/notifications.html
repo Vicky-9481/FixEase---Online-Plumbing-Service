@@ -3,39 +3,47 @@
 {% block title %}Notifications{% endblock %}
 
 {% block content %}
-<section class="panel reveal">
-    <div class="section-header">
-        <div>
-            <span class="eyebrow">Updates</span>
-            <h1 class="dashboard-title">Notifications</h1>
-            <p class="muted">Open a notification to jump straight to the relevant request or page.</p>
-        </div>
+<section class="page-header reveal">
+    <div>
+        <span class="eyebrow">Communication</span>
+        <h1>Notifications</h1>
+        <p>Review request updates, assignment changes, and job status alerts.</p>
     </div>
 </section>
 
-<section class="panel reveal">
-    {% if notifications %}
-        {% for note in notifications %}
-            <a class="notification-row" href="{{ url_for('open_notification', notification_id=note.id) }}">
-                <div class="toolbar">
-                    <div class="stack">
-                        <span class="badge">{{ note.title or 'Update' }}</span>
-                        <strong>{{ note.created_at.strftime("%d %b %Y %I:%M %p") }}</strong>
-                        <p class="muted">{{ note.message }}</p>
-                    </div>
-                    <div class="chip-row">
-                        {% if request_customer_name(note) %}
-                            <span class="badge neutral">Customer: {{ request_customer_name(note) }}</span>
-                        {% elif note.request_id %}
-                            <span class="badge neutral">Request linked</span>
-                        {% endif %}
-                        <span class="badge {% if note.is_read %}success{% else %}accent{% endif %}">{{ 'Read' if note.is_read else 'Open' }}</span>
+<section class="notification-list reveal">
+    {% for note in notifications %}
+        {% set kind = 'teal' if 'assigned' in note.message|lower or 'assigned' in (note.title or '')|lower else 'blue' if 'accepted' in note.message|lower or 'accepted' in (note.title or '')|lower else 'gray' %}
+        <article class="notification-card {% if not note.is_read %}unread{% endif %}">
+            <div class="note-border"></div>
+            <div class="note-icon {{ kind }}">
+                {% if kind == 'teal' %}
+                    {{ "A" }}
+                {% elif kind == 'blue' %}
+                    {{ "C" }}
+                {% else %}
+                    {{ "U" }}
+                {% endif %}
+            </div>
+            <div class="notification-copy">
+                <div class="notification-head">
+                    <span class="badge {% if kind == 'teal' %}success{% elif kind == 'blue' %}accent{% else %}neutral{% endif %}">
+                        {{ note.title or 'Update' }}
+                    </span>
+                    <small>{{ note.created_at.strftime("%d %b %Y %I:%M %p") }}</small>
+                </div>
+                <p>{{ note.message }}</p>
+                <div class="notification-meta">
+                    <span class="muted">Customer: {{ request_customer_name(note) or "N/A" }}</span>
+                    <div class="notification-actions">
+                        <span class="badge {% if note.is_read %}success{% else %}accent{% endif %}">{{ "Read" if note.is_read else "Unread" }}</span>
+                        <a class="btn-secondary" href="{{ url_for('open_notification', notification_id=note.id) }}">{{ "Open" if note.is_read else "Read" }}</a>
                     </div>
                 </div>
-            </a>
-        {% endfor %}
+            </div>
+        </article>
     {% else %}
         <div class="empty-state">You do not have any notifications yet.</div>
-    {% endif %}
+    {% endfor %}
 </section>
 {% endblock %}

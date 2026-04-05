@@ -1,13 +1,6 @@
-<footer class="site-footer">
-    <div class="container footer-inner">
-        <div>
-            <strong>{{ app_name or "FixEase" }}</strong>
-            <p>Book trusted plumbers, track requests, and manage service work with confidence.</p>
-        </div>
-        <div class="footer-links">
-            <a href="{{ url_for('about') }}">About</a>
-            <a href="{{ url_for('view_plumbers') }}">Plumbers</a>
-            <a href="{{ url_for('login') }}">Support</a>
-        </div>
+<footer class="footer-bar">
+    <div class="footer-inner">
+        <span>&copy; {{ today.year if today else "" }} {{ app_name or "FixEase" }}</span>
+        <span>{{ app_tagline or "Professional service marketplace" }}</span>
     </div>
 </footer>

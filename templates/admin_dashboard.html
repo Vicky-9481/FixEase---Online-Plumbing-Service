@@ -4,57 +4,78 @@
 {% block title %}Admin Dashboard{% endblock %}
 
 {% block content %}
-<section class="panel reveal">
-    <div class="section-header">
-        <div>
-            <span class="eyebrow">Admin overview</span>
-            <h1 class="dashboard-title">Control center</h1>
-            <p class="muted">Monitor the platform and jump straight into management modules.</p>
-        </div>
-        <div class="hero-actions">
-            <a class="button" href="{{ url_for('add_plumber') }}">Create plumber account</a>
-            <a class="button alt" href="{{ url_for('request_report_csv') }}">Download CSV report</a>
-        </div>
+<section class="hero-banner admin-banner reveal">
+    <div class="hero-copy">
+        <span class="eyebrow">Admin overview</span>
+        <h1>Control Center</h1>
+        <p>Monitor users, plumbers, requests, and platform performance from one place.</p>
+    </div>
+    <div class="banner-actions">
+        <a class="btn-primary" href="{{ url_for('add_plumber') }}">Create Plumber</a>
+        <a class="btn-secondary" href="{{ url_for('request_report_csv') }}">Download Report</a>
     </div>
 </section>
 
-<section class="stats-grid reveal">
-    <article class="stat-card"><span class="muted">Customers</span><strong>{{ stats.customers }}</strong></article>
-    <article class="stat-card"><span class="muted">Plumbers</span><strong>{{ stats.plumbers }}</strong></article>
-    <article class="stat-card"><span class="muted">Pending Requests</span><strong>{{ stats.pending_requests }}</strong></article>
-    <article class="stat-card"><span class="muted">Active Requests</span><strong>{{ stats.active_requests }}</strong></article>
-    <article class="stat-card"><span class="muted">Completed Jobs</span><strong>{{ stats.completed_jobs }}</strong></article>
-    <article class="stat-card"><span class="muted">Pending Plumbers</span><strong>{{ stats.pending_plumbers }}</strong></article>
+<section class="stats-grid grid-4 reveal">
+    <article class="stat-card"><span class="stat-label">Customers</span><strong>{{ stats.customers }}</strong></article>
+    <article class="stat-card"><span class="stat-label">Plumbers</span><strong>{{ stats.plumbers }}</strong></article>
+    <article class="stat-card"><span class="stat-label">Active Requests</span><strong>{{ stats.active_requests }}</strong></article>
+    <article class="stat-card"><span class="stat-label">Completed Jobs</span><strong>{{ stats.completed_jobs }}</strong></article>
 </section>
 
-<section class="panel reveal">
-    <div class="section-header">
-        <div>
-            <span class="eyebrow">Quick actions</span>
-            <h2 class="section-title">Module shortcuts</h2>
+<section class="dashboard-split reveal">
+    <article class="card section-card">
+        <div class="section-head">
+            <div>
+                <span class="eyebrow">User Management</span>
+                <h2>Quick Actions</h2>
+            </div>
         </div>
-    </div>
-    <div class="card-grid">
-        <a class="summary-card action-card" href="{{ url_for('admin_customers') }}">
-            <h3>Customers</h3>
-            <p>Review user accounts.</p>
-        </a>
-        <a class="summary-card action-card" href="{{ url_for('admin_plumber_records') }}">
-            <h3>Plumbers</h3>
-            <p>Manage provider records.</p>
-        </a>
-        <a class="summary-card action-card" href="{{ url_for('admin_all_requests') }}">
-            <h3>All Requests</h3>
-            <p>Inspect and assign jobs.</p>
-        </a>
-        <a class="summary-card action-card" href="{{ url_for('admin_analytics') }}">
-            <h3>Analytics</h3>
-            <p>Check performance metrics.</p>
-        </a>
-        <a class="summary-card action-card" href="{{ url_for('admin_reports') }}">
-            <h3>Reports</h3>
-            <p>Download operational reports.</p>
-        </a>
-    </div>
+        <div class="quick-actions-grid">
+            <a class="quick-action" href="{{ url_for('admin_customers') }}">
+                <span>{{ ui_icon("user-plus") }}</span>
+                <strong>Customers</strong>
+            </a>
+            <a class="quick-action" href="{{ url_for('admin_plumber_records') }}">
+                <span>{{ ui_icon("tool") }}</span>
+                <strong>Plumbers</strong>
+            </a>
+            <a class="quick-action" href="{{ url_for('admin_all_requests') }}">
+                <span>{{ ui_icon("track") }}</span>
+                <strong>All Requests</strong>
+            </a>
+            <a class="quick-action" href="{{ url_for('admin_analytics') }}">
+                <span>{{ ui_icon("calendar-check") }}</span>
+                <strong>Analytics</strong>
+            </a>
+        </div>
+    </article>
+
+    <article class="card section-card">
+        <div class="section-head">
+            <div>
+                <span class="eyebrow">Platform control</span>
+                <h2>Reports & monitoring</h2>
+            </div>
+        </div>
+        <div class="quick-actions-grid">
+            <a class="quick-action" href="{{ url_for('admin_job_monitoring') }}">
+                <span>{{ ui_icon("history") }}</span>
+                <strong>Job Monitoring</strong>
+            </a>
+            <a class="quick-action" href="{{ url_for('admin_reports') }}">
+                <span>{{ ui_icon("track") }}</span>
+                <strong>Reports</strong>
+            </a>
+            <a class="quick-action" href="{{ url_for('notifications') }}">
+                <span>{{ ui_icon("secure") }}</span>
+                <strong>Notifications</strong>
+            </a>
+            <a class="quick-action" href="{{ url_for('admin_dashboard') }}">
+                <span>{{ ui_icon("profile") }}</span>
+                <strong>Overview</strong>
+            </a>
+        </div>
+    </article>
 </section>
 {% endblock %}

@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+
+{% block title %}Help & Support{% endblock %}
+
+{% block content %}
+<section class="page-header reveal">
+    <div>
+        <span class="eyebrow">Support</span>
+        <h1>Help & Support</h1>
+        <p>Need help with a booking, payment, or plumber assignment? Start here.</p>
+    </div>
+</section>
+
+<section class="support-grid reveal">
+    <article class="card support-card">
+        <span class="badge success">Customer Help</span>
+        <h2>Booking & request issues</h2>
+        <p>Questions about service requests, tracking, or changing your booking? Visit your dashboard or request history.</p>
+        <a class="btn-primary" href="{{ dashboard_url }}">Go to Dashboard</a>
+    </article>
+    <article class="card support-card">
+        <span class="badge accent">Plumber Help</span>
+        <h2>Jobs & availability</h2>
+        <p>Update your availability, manage jobs, and keep your service area current from your plumber dashboard.</p>
+        <a class="btn-primary" href="{{ dashboard_url }}">Open Dashboard</a>
+    </article>
+    <article class="card support-card">
+        <span class="badge neutral">Contact</span>
+        <h2>Need direct help?</h2>
+        <p>Use notifications and request detail pages to follow updates and communicate with the right person.</p>
+        <a class="btn-secondary" href="{{ url_for('notifications') }}">Notifications</a>
+    </article>
+</section>
+{% endblock %}

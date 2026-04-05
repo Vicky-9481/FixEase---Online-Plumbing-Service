@@ -3,36 +3,36 @@
 {% block title %}Plumber Settings{% endblock %}
 
 {% block content %}
-<section class="panel reveal">
-    <div class="section-header">
-        <div>
-            <span class="eyebrow">Availability</span>
-            <h1 class="dashboard-title">Update Availability</h1>
-            <p class="muted">Keep your service area and status current so matching stays accurate.</p>
-        </div>
+<section class="page-header reveal">
+    <div>
+        <span class="eyebrow">Availability</span>
+        <h1>Update Availability</h1>
+        <p>Keep your service area and profile note current so matching stays accurate.</p>
     </div>
 </section>
 
-<section class="panel reveal">
-    <form method="POST" action="{{ url_for('update_plumber_profile') }}" class="form-grid">
-        <div>
-            <label for="availability_status">Availability</label>
-            <select id="availability_status" name="availability_status">
-                <option value="available" {% if plumber.availability_status == 'available' %}selected{% endif %}>Available</option>
-                <option value="busy" {% if plumber.availability_status == 'busy' %}selected{% endif %}>Busy</option>
-                <option value="offline" {% if plumber.availability_status == 'offline' %}selected{% endif %}>Offline</option>
-            </select>
+<section class="card form-card reveal">
+    <form method="POST" action="{{ url_for('update_plumber_profile') }}" class="service-form">
+        <div class="form-grid two-col">
+            <div>
+                <label for="availability_status">Availability</label>
+                <select id="availability_status" name="availability_status">
+                    <option value="available" {% if plumber.availability_status == 'available' %}selected{% endif %}>Available</option>
+                    <option value="busy" {% if plumber.availability_status == 'busy' %}selected{% endif %}>Busy</option>
+                    <option value="offline" {% if plumber.availability_status == 'offline' %}selected{% endif %}>Offline</option>
+                </select>
+            </div>
+            <div>
+                <label for="service_area">Service Area</label>
+                <input id="service_area" name="service_area" type="text" value="{{ plumber.service_area or '' }}" placeholder="Update service area">
+            </div>
+            <div class="full-width">
+                <label for="bio">Bio</label>
+                <textarea id="bio" name="bio" rows="4" placeholder="Short professional summary">{{ plumber.bio or '' }}</textarea>
+            </div>
         </div>
-        <div>
-            <label for="service_area">Service Area</label>
-            <input id="service_area" name="service_area" type="text" value="{{ plumber.service_area or '' }}" placeholder="Update service area">
-        </div>
-        <div class="span-full">
-            <label for="bio">Bio</label>
-            <textarea id="bio" name="bio" placeholder="Share your service summary">{{ plumber.bio or '' }}</textarea>
-        </div>
-        <div class="span-full">
-            <button type="submit">Save Profile</button>
+        <div class="form-actions">
+            <button class="btn-primary" type="submit">Save Profile</button>
         </div>
     </form>
 </section>

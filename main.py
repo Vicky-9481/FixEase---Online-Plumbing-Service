@@ -129,6 +129,7 @@ class User(db.Model):
     is_admin = db.Column(db.Boolean, default=False, nullable=False)
     role = db.Column(db.String(20), default="customer", nullable=False)
     phone = db.Column(db.String(20))
+    city = db.Column(db.String(120))
     address = db.Column(db.String(255))
     created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
 
@@ -371,6 +372,7 @@ def upgrade_schema():
         "user": {
             "role": "VARCHAR(20) NOT NULL DEFAULT 'customer'",
             "phone": "VARCHAR(20) NULL",
+            "city": "VARCHAR(120) NULL",
             "address": "VARCHAR(255) NULL",
             "created_at": "DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP",
         },
@@ -441,6 +443,7 @@ def inject_common_data():
     user = current_user()
     unread_notifications = 0
     unread_messages = 0
+    current_endpoint = request.endpoint or ""
     if user:
         unread_notifications = Notification.query.filter_by(user_id=user.id, is_read=False).count()
         unread_messages = Message.query.filter_by(receiver_id=user.id, is_read=False).count()
@@ -457,6 +460,7 @@ def inject_common_data():
         return None
 
     profile_url = resolve_url("profile")
+    help_support_url = resolve_url("help_support", "about")
     notifications_url = resolve_url("notifications")
     if user and user.role == "customer":
         dashboard_url = resolve_url("customer.customer_dashboard", "user_dashboard")
@@ -475,31 +479,39 @@ def inject_common_data():
         bookings_url = resolve_url("request_service")
         settings_url = resolve_url("profile")
 
+    def nav_link(label, endpoint, *fallbacks, **values):
+        endpoints = [endpoint, *fallbacks]
+        return {
+            "label": label,
+            "url": resolve_url(*endpoints, **values),
+            "active_endpoints": endpoints,
+        }
+
     sidebar_groups = []
     if user and user.role == "customer":
         sidebar_groups = [
             {
                 "title": "Overview",
-                "links": [{"label": "Dashboard", "url": dashboard_url}],
+                "links": [nav_link("Dashboard", "customer.customer_dashboard", "user_dashboard")],
             },
             {
                 "title": "Service Management",
                 "links": [
-                    {"label": "Create Request", "url": resolve_url("request_service")},
-                    {"label": "My Requests", "url": resolve_url("customer_requests", "user_dashboard")},
-                    {"label": "Service History", "url": resolve_url("customer_history", "user_dashboard")},
+                    nav_link("Create Request", "request_service"),
+                    nav_link("My Requests", "customer_requests", "user_dashboard"),
+                    nav_link("Service History", "customer_history", "user_dashboard"),
                 ],
             },
             {
                 "title": "Communication",
-                "links": [{"label": "Notifications", "url": notifications_url}],
+                "links": [nav_link("Notifications", "notifications")],
             },
             {
                 "title": "Account",
                 "links": [
-                    {"label": "Profile", "url": profile_url},
-                    {"label": "Settings", "url": settings_url},
-                    {"label": "Logout", "url": resolve_url("logout")},
+                    nav_link("Profile", "profile"),
+                    nav_link("Help & Support", "help_support", "about"),
+                    nav_link("Service History", "customer_history", "user_dashboard"),
                 ],
             },
         ]
@@ -507,29 +519,28 @@ def inject_common_data():
         sidebar_groups = [
             {
                 "title": "Overview",
-                "links": [{"label": "Dashboard", "url": dashboard_url}],
+                "links": [nav_link("Dashboard", "plumber_dashboard")],
             },
             {
                 "title": "Job Management",
                 "links": [
-                    {"label": "Available Requests", "url": resolve_url("plumber_available_requests", "plumber_dashboard")},
-                    {"label": "Accepted Jobs", "url": resolve_url("plumber_accepted_jobs", "plumber_dashboard")},
-                    {"label": "Completed Jobs", "url": resolve_url("plumber_completed_jobs", "plumber_dashboard")},
+                    nav_link("Available Requests", "plumber_available_requests", "plumber_dashboard"),
+                    nav_link("Accepted Jobs", "plumber_accepted_jobs", "plumber_dashboard"),
+                    nav_link("Completed Jobs", "plumber_completed_jobs", "plumber_dashboard"),
                 ],
             },
             {
                 "title": "Availability",
                 "links": [
-                    {"label": "Update Availability", "url": resolve_url("plumber_settings", "plumber_dashboard")},
-                    {"label": "Service Areas", "url": resolve_url("plumber_service_areas", "plumber_dashboard")},
+                    nav_link("Update Availability", "plumber_settings", "plumber_dashboard"),
+                    nav_link("Service Areas", "plumber_service_areas", "plumber_dashboard"),
                 ],
             },
             {
                 "title": "Account",
                 "links": [
-                    {"label": "Profile", "url": profile_url},
-                    {"label": "Ratings", "url": resolve_url("plumber_ratings", "plumber_dashboard")},
-                    {"label": "Logout", "url": resolve_url("logout")},
+                    nav_link("Profile", "profile"),
+                    nav_link("Ratings", "plumber_ratings", "plumber_dashboard"),
                 ],
             },
         ]
@@ -537,32 +548,88 @@ def inject_common_data():
         sidebar_groups = [
             {
                 "title": "Overview",
-                "links": [{"label": "Dashboard", "url": resolve_url("admin_dashboard")}],
+                "links": [nav_link("Dashboard", "admin_dashboard")],
             },
             {
                 "title": "User Management",
                 "links": [
-                    {"label": "Customers", "url": resolve_url("admin_customers", "admin_dashboard")},
-                    {"label": "Plumbers", "url": resolve_url("admin_plumber_records", "admin_dashboard")},
+                    nav_link("Customers", "admin_customers", "admin_dashboard"),
+                    nav_link("Plumbers", "admin_plumber_records", "admin_dashboard"),
                 ],
             },
             {
                 "title": "Service Management",
                 "links": [
-                    {"label": "All Requests", "url": resolve_url("admin_all_requests", "admin_dashboard")},
-                    {"label": "Job Monitoring", "url": resolve_url("admin_job_monitoring", "admin_dashboard")},
+                    nav_link("All Requests", "admin_all_requests", "admin_dashboard"),
+                    nav_link("Job Monitoring", "admin_job_monitoring", "admin_dashboard"),
                 ],
             },
             {
                 "title": "Platform Control",
                 "links": [
-                    {"label": "Notifications", "url": notifications_url},
-                    {"label": "Analytics", "url": resolve_url("admin_analytics", "admin_dashboard")},
-                    {"label": "Reports", "url": resolve_url("admin_reports", "admin_dashboard")},
-                    {"label": "Logout", "url": resolve_url("logout")},
+                    nav_link("Notifications", "notifications"),
+                    nav_link("Analytics", "admin_analytics", "admin_dashboard"),
+                    nav_link("Reports", "admin_reports", "admin_dashboard"),
                 ],
             },
         ]
+    else:
+        sidebar_groups = [
+            {
+                "title": "Main",
+                "links": [
+                    nav_link("Home", "home"),
+                    nav_link("Services", "home"),
+                    nav_link("Plumbers", "view_plumbers"),
+                    nav_link("About", "about"),
+                ],
+            },
+            {
+                "title": "Account",
+                "links": [
+                    nav_link("Login", "login"),
+                    nav_link("Register", "register"),
+                ],
+            },
+        ]
+
+    page_title_map = {
+        "home": "Home",
+        "about": "About",
+        "login": "Login",
+        "register": "Register",
+        "dashboard_router": "Dashboard",
+        "user_dashboard": "Dashboard",
+        "customer_requests": "My Requests",
+        "customer_history": "Service History",
+        "customer_settings": "Settings",
+        "plumber_dashboard": "Dashboard",
+        "plumber_available_requests": "Available Requests",
+        "plumber_accepted_jobs": "Accepted Jobs",
+        "plumber_completed_jobs": "Completed Jobs",
+        "plumber_ratings": "Ratings",
+        "plumber_settings": "Update Availability",
+        "plumber_service_areas": "Service Areas",
+        "admin_dashboard": "Dashboard",
+        "admin_customers": "Customers",
+        "admin_plumber_records": "Plumbers",
+        "admin_all_requests": "All Requests",
+        "admin_job_monitoring": "Job Monitoring",
+        "admin_analytics": "Analytics",
+        "admin_reports": "Reports",
+        "view_plumbers": "Plumbers",
+        "request_service": "Book Service",
+        "notifications": "Notifications",
+        "profile": "Profile",
+        "help_support": "Help & Support",
+        "request_detail": "Request Details",
+        "plumber_profile": "Plumber Profile",
+    }
+
+    if current_endpoint == "dashboard_router" and user:
+        page_title = "Dashboard"
+    else:
+        page_title = page_title_map.get(current_endpoint, "FixEase")
 
     return {
         "current_user_data": user,
@@ -581,12 +648,16 @@ def inject_common_data():
         "notifications_url": notifications_url,
         "bookings_url": bookings_url,
         "settings_url": settings_url,
+        "help_support_url": help_support_url,
         "status_styles": STATUS_STYLES,
         "request_progress_steps": REQUEST_PROGRESS_STEPS,
         "request_stage_index": request_stage_index,
         "request_customer_name": request_customer_name,
         "unread_notifications": unread_notifications,
         "unread_messages": unread_messages,
+        "page_title": page_title,
+        "active_endpoint": current_endpoint,
+        "topbar_search_value": request.args.get("search", "") if current_endpoint == "view_plumbers" else "",
         "today": date.today(),
     }
 
@@ -725,7 +796,101 @@ def profile():
     if not user:
         flash("Please log in to continue.", "danger")
         return redirect(url_for("login"))
-    return redirect_for_role(user)
+    profile_stats = {
+        "requests": 0,
+        "completed": 0,
+        "reviews": 0,
+    }
+    recent_activity = []
+    profile_mode = "customer"
+    if user.role == "customer":
+        requests_list = ServiceRequest.query.filter_by(customer_id=user.id).all()
+        profile_stats = {
+            "requests": len(requests_list),
+            "completed": len([item for item in requests_list if item.status == "completed"]),
+            "reviews": len([item for item in requests_list if item.feedback]),
+        }
+        recent_activity = requests_list[:4]
+        profile_mode = "customer"
+    elif user.role == "plumber" and user.plumber_profile:
+        plumber = user.plumber_profile
+        requests_list = ServiceRequest.query.filter_by(plumber_id=plumber.id).all()
+        profile_stats = {
+            "requests": len(requests_list),
+            "completed": len([item for item in requests_list if item.status == "completed"]),
+            "reviews": len(plumber.feedback_entries),
+        }
+        recent_activity = requests_list[:4]
+        profile_mode = "plumber"
+    else:
+        profile_mode = "admin"
+
+    return render_template(
+        "profile.html",
+        user=user,
+        profile_mode=profile_mode,
+        profile_stats=profile_stats,
+        recent_activity=recent_activity,
+    )
+
+
+@app.route("/help-support")
+def help_support():
+    user = current_user()
+    if not user:
+        flash("Please log in to continue.", "danger")
+        return redirect(url_for("login"))
+    return render_template("help_support.html")
+
+
+@app.route("/profile/update", methods=["POST"])
+def update_profile():
+    user = current_user()
+    if not user:
+        flash("Please log in to continue.", "danger")
+        return redirect(url_for("login"))
+
+    user.username = request.form.get("name", user.username).strip() or user.username
+    user.email = request.form.get("email", user.email).strip().lower() or user.email
+    user.phone = request.form.get("phone", user.phone or "").strip() or None
+    user.city = request.form.get("city", user.city or "").strip() or None
+    user.address = request.form.get("address", user.address or "").strip() or None
+
+    if user.role == "plumber" and user.plumber_profile:
+        plumber = user.plumber_profile
+        plumber.name = user.username
+        plumber.mobile_number = user.phone or plumber.mobile_number
+        plumber.service_area = request.form.get("service_area", plumber.service_area or "").strip() or plumber.service_area
+        plumber.bio = request.form.get("bio", plumber.bio or "").strip() or plumber.bio
+
+    db.session.commit()
+    flash("Profile updated successfully.", "success")
+    return redirect(url_for("profile"))
+
+
+@app.route("/profile/password", methods=["POST"])
+def update_password():
+    user = current_user()
+    if not user:
+        flash("Please log in to continue.", "danger")
+        return redirect(url_for("login"))
+
+    current_password = request.form.get("current_password", "")
+    new_password = request.form.get("new_password", "")
+    confirm_password = request.form.get("confirm_password", "")
+
+    if not verify_password(user.password, current_password):
+        flash("Current password is incorrect.", "danger")
+        return redirect(url_for("profile"))
+
+    if not new_password or new_password != confirm_password:
+        flash("New passwords do not match.", "danger")
+        return redirect(url_for("profile"))
+
+    user.password = generate_password_hash(new_password)
+    db.session.commit()
+    flash("Password updated successfully.", "success")
+    return redirect(url_for("profile"))
 
 
 def resolve_endpoint(*candidates):
@@ -810,6 +975,7 @@ def request_service():
         .order_by(Plumber.availability_status.asc(), Plumber.charges.asc())
         .all()
     )
+    selected_plumber_id = request.args.get("plumber_id", type=int)
 
     if request.method == "POST":
         issue_type = request.form["issue_type"]
@@ -834,7 +1000,12 @@ def request_service():
         flash("Your service request was created successfully.", "success")
         return redirect(url_for("request_detail", request_id=service_request.id))
 
-    return render_template("request_service.html", plumbers=plumbers, issue_types=ISSUE_TYPES)
+    return render_template(
+        "request_service.html",
+        plumbers=plumbers,
+        issue_types=ISSUE_TYPES,
+        selected_plumber_id=selected_plumber_id,
+    )
 
 
 @app.route("/user/dashboard")

@@ -1,13 +1,62 @@
-<aside class="sidebar">
-    <div class="sidebar-card">
-        <div class="sidebar-title">Menu</div>
+<aside class="sidebar-shell" data-sidebar-shell>
+    <div class="sidebar-brand">
+        <a class="brand-lockup" href="{{ url_for('home') }}">
+            <img src="{{ url_for('static', filename='fixease-logo.svg') }}" alt="FixEase logo" class="brand-mark">
+            <div>
+                <strong>{{ app_name or "FixEase" }}</strong>
+                <span>{{ app_tagline or "Modern Service Marketplace" }}</span>
+            </div>
+        </a>
+    </div>
+
+    {% if current_user_data %}
+        {% set initials = (current_user_data.username or 'U')[:2] | upper %}
+        <div class="user-panel">
+            <div class="avatar-lg">{{ initials }}</div>
+            <div class="user-copy">
+                <strong>{{ current_user_data.username }}</strong>
+                <span>{{ role_labels.get(current_user_data.role, current_user_data.role.title()) }}</span>
+            </div>
+        </div>
+    {% else %}
+        <div class="user-panel guest-panel">
+            <div class="avatar-lg">FE</div>
+            <div class="user-copy">
+                <strong>Guest</strong>
+                <span>Sign in to manage bookings</span>
+            </div>
+        </div>
+    {% endif %}
+
+    <nav class="sidebar-nav" aria-label="Sidebar navigation">
         {% for group in sidebar_groups %}
-            <div class="sidebar-group">
-                <div class="sidebar-group-title">{{ group.title }}</div>
-                {% for link in group.links %}
-                    <a href="{{ link.url }}">{{ link.label }}</a>
-                {% endfor %}
+            <div class="nav-group">
+                <div class="nav-group-title">{{ group.title }}</div>
+                <div class="nav-links">
+                    {% for link in group.links %}
+                        <a
+                            href="{{ link.url }}"
+                            class="nav-link{% if request.endpoint in link.active_endpoints %} active{% endif %}"
+                        >
+                            <span>{{ link.label }}</span>
+                            {% if link.label == "Notifications" and unread_notifications %}
+                                <span class="pill">{{ unread_notifications }}</span>
+                            {% endif %}
+                        </a>
+                    {% endfor %}
+                </div>
             </div>
         {% endfor %}
-    </div>
+    </nav>
+
+    {% if current_user_data %}
+        <div class="sidebar-footer">
+            <a class="btn-secondary sidebar-logout" href="{{ url_for('logout') }}">Logout</a>
+        </div>
+    {% else %}
+        <div class="sidebar-footer auth-actions">
+            <a class="btn-secondary" href="{{ url_for('login') }}">Login</a>
+            <a class="btn-primary" href="{{ url_for('register') }}">Register</a>
+        </div>
+    {% endif %}
 </aside>

@@ -1,58 +1,87 @@
 {% extends "base.html" %}
+{% from "_icons.html" import ui_icon %}
 
 {% block title %}Plumber Dashboard{% endblock %}
 
 {% block content %}
-<section class="panel reveal">
-    <div class="section-header">
-        <div>
-            <span class="eyebrow">Plumber overview</span>
-            <h1 class="dashboard-title">{{ plumber.name }}</h1>
-            <p class="muted">Manage your workload, availability, and ratings from a focused control center.</p>
-        </div>
-        <div class="chip-row">
-            <span class="badge {% if plumber.is_verified %}success{% else %}accent{% endif %}">{% if plumber.is_verified %}Verified{% else %}Pending verification{% endif %}</span>
-            <span class="badge {% if plumber.is_active %}success{% else %}neutral{% endif %}">{% if plumber.is_active %}Active{% else %}Inactive{% endif %}</span>
-            <span class="badge neutral">{{ stats.availability }}</span>
-        </div>
+<section class="hero-banner plumber-banner reveal">
+    <div class="hero-copy">
+        <span class="eyebrow">Plumber overview</span>
+        <h1>{{ plumber.name }}</h1>
+        <p>Stay on top of available requests, accepted jobs, and your service ratings.</p>
+    </div>
+    <div class="banner-badges">
+        <span class="badge {% if plumber.is_verified %}success{% else %}accent{% endif %}">{% if plumber.is_verified %}Verified{% else %}Pending verification{% endif %}</span>
+        <span class="badge {% if plumber.is_active %}success{% else %}neutral{% endif %}">{% if plumber.is_active %}Active{% else %}Inactive{% endif %}</span>
+        <span class="badge neutral">{{ stats.availability }}</span>
     </div>
 </section>
 
-<section class="stats-grid reveal">
-    <article class="stat-card"><span class="muted">Open Jobs</span><strong>{{ stats.open_jobs }}</strong></article>
-    <article class="stat-card"><span class="muted">Active Jobs</span><strong>{{ stats.active_jobs }}</strong></article>
-    <article class="stat-card"><span class="muted">Completed Jobs</span><strong>{{ stats.completed_jobs }}</strong></article>
-    <article class="stat-card"><span class="muted">Ratings</span><strong>{{ plumber.average_rating or "New" }}{% if plumber.average_rating %}/5{% endif %}</strong></article>
+<section class="stats-grid grid-4 reveal">
+    <article class="stat-card"><span class="stat-label">Open Jobs</span><strong>{{ stats.open_jobs }}</strong></article>
+    <article class="stat-card"><span class="stat-label">Active Jobs</span><strong>{{ stats.active_jobs }}</strong></article>
+    <article class="stat-card"><span class="stat-label">Completed Jobs</span><strong>{{ stats.completed_jobs }}</strong></article>
+    <article class="stat-card"><span class="stat-label">Ratings</span><strong>{{ plumber.average_rating or "New" }}{% if plumber.average_rating %}/5{% endif %}</strong></article>
 </section>
 
-<section class="panel reveal">
-    <div class="section-header">
-        <div>
-            <span class="eyebrow">Quick actions</span>
-            <h2 class="section-title">Module shortcuts</h2>
+<section class="dashboard-split reveal">
+    <article class="card section-card">
+        <div class="section-head">
+            <div>
+                <span class="eyebrow">Job Management</span>
+                <h2>Quick Actions</h2>
+            </div>
         </div>
-    </div>
-    <div class="card-grid">
-        <a class="summary-card action-card" href="{{ url_for('plumber_available_requests') }}">
-            <h3>Available Requests</h3>
-            <p>See jobs you can claim.</p>
-        </a>
-        <a class="summary-card action-card" href="{{ url_for('plumber_accepted_jobs') }}">
-            <h3>Accepted Jobs</h3>
-            <p>Review active work in progress.</p>
-        </a>
-        <a class="summary-card action-card" href="{{ url_for('plumber_completed_jobs') }}">
-            <h3>Completed Jobs</h3>
-            <p>Check finished assignments.</p>
-        </a>
-        <a class="summary-card action-card" href="{{ url_for('plumber_settings') }}">
-            <h3>Update Availability</h3>
-            <p>Adjust schedule and service area.</p>
-        </a>
-        <a class="summary-card action-card" href="{{ url_for('plumber_ratings') }}">
-            <h3>Ratings</h3>
-            <p>View customer feedback.</p>
-        </a>
-    </div>
+        <div class="quick-actions-grid">
+            <a class="quick-action" href="{{ url_for('plumber_available_requests') }}">
+                <span>{{ ui_icon("track") }}</span>
+                <strong>Available Requests</strong>
+            </a>
+            <a class="quick-action" href="{{ url_for('plumber_accepted_jobs') }}">
+                <span>{{ ui_icon("history") }}</span>
+                <strong>Accepted Jobs</strong>
+            </a>
+            <a class="quick-action" href="{{ url_for('plumber_completed_jobs') }}">
+                <span>{{ ui_icon("calendar-check") }}</span>
+                <strong>Completed Jobs</strong>
+            </a>
+            <a class="quick-action" href="{{ url_for('plumber_settings') }}">
+                <span>{{ ui_icon("tool") }}</span>
+                <strong>Update Availability</strong>
+            </a>
+        </div>
+    </article>
+
+    <article class="card section-card">
+        <div class="section-head">
+            <div>
+                <span class="eyebrow">Account</span>
+                <h2>Ratings</h2>
+            </div>
+        </div>
+        <div class="profile-mini-widget">
+            <div class="avatar-xl">{{ plumber.name[:2].upper() }}</div>
+            <div>
+                <strong>{{ plumber.average_rating or "New" }}{% if plumber.average_rating %}/5{% endif %}</strong>
+                <p>{{ plumber.service_area or "Service area not set" }}</p>
+            </div>
+            <a class="text-link" href="{{ url_for('plumber_ratings') }}">View</a>
+        </div>
+        <div class="notification-stack">
+            {% for note in notifications %}
+                <div class="mini-notification {% if not note.is_read %}unread{% endif %}">
+                    <span class="note-badge {% if 'accepted' in note.message|lower %}blue{% elif 'assigned' in note.message|lower %}teal{% else %}gray{% endif %}">
+                        Update
+                    </span>
+                    <div class="note-body">
+                        <strong>{{ note.title or "Notification" }}</strong>
+                        <p>{{ note.message }}</p>
+                    </div>
+                </div>
+            {% else %}
+                <div class="empty-state">No recent updates.</div>
+            {% endfor %}
+        </div>
+    </article>
 </section>
 {% endblock %}
