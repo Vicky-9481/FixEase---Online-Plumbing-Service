@@ -1,5 +1,4 @@
 {% extends "base.html" %}
-{% from "_icons.html" import ui_icon %}
 
 {% block title %}Customer Dashboard{% endblock %}
 
@@ -7,106 +6,49 @@
 <section class="panel reveal">
     <div class="section-header">
         <div>
-            <span class="eyebrow">Customer workspace</span>
+            <span class="eyebrow">Customer overview</span>
             <h1 class="dashboard-title">Welcome back, {{ user.username }}</h1>
-            <p class="muted">Book new jobs, track progress, and keep your service history tidy from one place.</p>
+            <p class="muted">Track requests, manage your account, and book support from one place.</p>
         </div>
-        <a class="button" href="{{ url_for('request_service') }}">Book Service</a>
+        <a class="button" href="{{ url_for('request_service') }}">Create Request</a>
     </div>
 </section>
 
 <section class="stats-grid reveal">
     <article class="stat-card"><span class="muted">Total Requests</span><strong>{{ stats.total_requests }}</strong></article>
     <article class="stat-card"><span class="muted">Active Requests</span><strong>{{ stats.active_requests }}</strong></article>
-    <article class="stat-card"><span class="muted">Completed</span><strong>{{ stats.completed_requests }}</strong></article>
-    <article class="stat-card"><span class="muted">Feedback Pending</span><strong>{{ stats.feedback_pending }}</strong></article>
-</section>
-
-<section class="split-grid reveal">
-    <div class="panel">
-        <div class="section-header">
-            <div>
-                <span class="eyebrow">{{ ui_icon("track") }}</span>
-                <h2 class="section-title">Latest notifications</h2>
-            </div>
-            <a class="button alt" href="{{ url_for('notifications') }}">View all</a>
-        </div>
-        {% if notifications %}
-            {% for note in notifications %}
-                <a class="notification-row" href="{{ url_for('open_notification', notification_id=note.id) }}">
-                    <div class="toolbar">
-                        <div class="stack">
-                            <span class="badge">{{ note.title or 'Update' }}</span>
-                            <strong>{{ note.created_at.strftime("%d %b %Y %I:%M %p") }}</strong>
-                            <p class="muted">{{ note.message }}</p>
-                        </div>
-                        <div class="chip-row">
-                            {% if request_customer_name(note) %}
-                                <span class="badge neutral">Customer: {{ request_customer_name(note) }}</span>
-                            {% endif %}
-                            <span class="badge {% if note.is_read %}success{% else %}accent{% endif %}">{{ 'Read' if note.is_read else 'Open' }}</span>
-                        </div>
-                    </div>
-                </a>
-            {% endfor %}
-        {% else %}
-            <div class="empty-state">No notifications yet.</div>
-        {% endif %}
-    </div>
-
-    <div class="panel">
-        <div class="section-header">
-            <div>
-                <span class="eyebrow">{{ ui_icon("profile") }}</span>
-                <h2 class="section-title">Profile shortcut</h2>
-            </div>
-        </div>
-        <div class="helper-box stack">
-            <p>Manage your account from the top-right profile module.</p>
-            <a class="button" href="{{ url_for('profile') }}">Open Profile</a>
-        </div>
-    </div>
+    <article class="stat-card"><span class="muted">Completed Jobs</span><strong>{{ stats.completed_requests }}</strong></article>
+    <article class="stat-card"><span class="muted">Pending Feedback</span><strong>{{ stats.feedback_pending }}</strong></article>
 </section>
 
 <section class="panel reveal">
     <div class="section-header">
         <div>
-            <span class="eyebrow">{{ ui_icon("history") }}</span>
-            <h2 class="section-title">Service requests</h2>
+            <span class="eyebrow">Quick actions</span>
+            <h2 class="section-title">Shortcuts to your module groups</h2>
         </div>
     </div>
-    {% if requests_list %}
-        <div class="plumber-grid">
-            {% for item in requests_list %}
-                <article class="plumber-card">
-                    <div class="toolbar">
-                        <span class="badge neutral">Request #{{ item.id }}</span>
-                        <span class="status {{ item.status }}">{{ status_styles[item.status] }}</span>
-                    </div>
-                    <h3>{{ item.issue_type or "General plumbing request" }}</h3>
-                    <div class="stack">
-                        <div class="inline-note">{{ ui_icon("location") }} {{ item.location or "Not shared" }}</div>
-                        <div class="inline-note">{{ ui_icon("calendar-check") }} {{ item.preferred_date or "Flexible" }}{% if item.preferred_time %} at {{ item.preferred_time }}{% endif %}</div>
-                        <div class="inline-note">{{ ui_icon("profile") }} {{ item.plumber.name if item.plumber else "Waiting for assignment" }}</div>
-                    </div>
-                    <div class="progress-timeline">
-                        {% if item.status in ['cancelled', 'rejected'] %}
-                            <div class="timeline-state interrupted">{{ status_styles[item.status] }}</div>
-                        {% else %}
-                            {% for step_key, step_label in request_progress_steps %}
-                                <div class="timeline-step {% if request_stage_index(item.status) >= loop.index0 %}done{% endif %} {% if item.status == step_key %}current{% endif %}">
-                                    <span class="timeline-dot"></span>
-                                    <span>{{ step_label }}</span>
-                                </div>
-                            {% endfor %}
-                        {% endif %}
-                    </div>
-                    <a class="button alt" href="{{ url_for('request_detail', request_id=item.id) }}">Open request</a>
-                </article>
-            {% endfor %}
-        </div>
-    {% else %}
-        <div class="empty-state">You have not created any service requests yet.</div>
-    {% endif %}
+    <div class="card-grid">
+        <a class="summary-card action-card" href="{{ url_for('request_service') }}">
+            <h3>Create Request</h3>
+            <p>Submit a new plumbing request.</p>
+        </a>
+        <a class="summary-card action-card" href="{{ url_for('customer_requests') }}">
+            <h3>My Requests</h3>
+            <p>Review open and pending jobs.</p>
+        </a>
+        <a class="summary-card action-card" href="{{ url_for('customer_history') }}">
+            <h3>Service History</h3>
+            <p>See completed service records.</p>
+        </a>
+        <a class="summary-card action-card" href="{{ url_for('notifications') }}">
+            <h3>Notifications</h3>
+            <p>Check updates and reminders.</p>
+        </a>
+        <a class="summary-card action-card" href="{{ url_for('profile') }}">
+            <h3>Profile</h3>
+            <p>Manage your account details.</p>
+        </a>
+    </div>
 </section>
 {% endblock %}

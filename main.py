@@ -6,7 +6,7 @@ from urllib.parse import quote_plus
 
 import pymysql
 from dotenv import load_dotenv
-from flask import Flask, Response, flash, redirect, render_template, request, session, url_for
+from flask import Flask, Response, current_app, flash, redirect, render_template, request, session, url_for
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.exc import OperationalError
 from sqlalchemy import inspect, text
@@ -323,8 +323,10 @@ def redirect_for_role(user):
     if user.role == "admin":
         return redirect(url_for("admin_dashboard"))
     if user.role == "plumber":
-        return redirect(url_for("plumber_dashboard"))
-    return redirect(url_for("user_dashboard"))
+        endpoint = "plumber.plumber_dashboard_alias" if "plumber.plumber_dashboard_alias" in current_app.view_functions else "plumber_dashboard"
+        return redirect(url_for(endpoint))
+    endpoint = "customer.customer_dashboard" if "customer.customer_dashboard" in current_app.view_functions else "user_dashboard"
+    return redirect(url_for(endpoint))
 
 
 def ensure_request_access(service_request, user):
@@ -454,6 +456,114 @@ def inject_common_data():
             return request_row.customer.username
         return None
 
+    profile_url = resolve_url("profile")
+    notifications_url = resolve_url("notifications")
+    if user and user.role == "customer":
+        dashboard_url = resolve_url("customer.customer_dashboard", "user_dashboard")
+        bookings_url = resolve_url("customer_requests", "user_dashboard")
+        settings_url = resolve_url("customer_settings", "profile")
+    elif user and user.role == "plumber":
+        dashboard_url = resolve_url("plumber_dashboard")
+        bookings_url = resolve_url("plumber_accepted_jobs", "plumber_dashboard")
+        settings_url = resolve_url("plumber_settings", "plumber_dashboard")
+    elif user and user.role == "admin":
+        dashboard_url = resolve_url("admin_dashboard")
+        bookings_url = resolve_url("admin_all_requests", "admin_dashboard")
+        settings_url = resolve_url("admin_dashboard")
+    else:
+        dashboard_url = resolve_url("dashboard_router", "home")
+        bookings_url = resolve_url("request_service")
+        settings_url = resolve_url("profile")
+
+    sidebar_groups = []
+    if user and user.role == "customer":
+        sidebar_groups = [
+            {
+                "title": "Overview",
+                "links": [{"label": "Dashboard", "url": dashboard_url}],
+            },
+            {
+                "title": "Service Management",
+                "links": [
+                    {"label": "Create Request", "url": resolve_url("request_service")},
+                    {"label": "My Requests", "url": resolve_url("customer_requests", "user_dashboard")},
+                    {"label": "Service History", "url": resolve_url("customer_history", "user_dashboard")},
+                ],
+            },
+            {
+                "title": "Communication",
+                "links": [{"label": "Notifications", "url": notifications_url}],
+            },
+            {
+                "title": "Account",
+                "links": [
+                    {"label": "Profile", "url": profile_url},
+                    {"label": "Settings", "url": settings_url},
+                    {"label": "Logout", "url": resolve_url("logout")},
+                ],
+            },
+        ]
+    elif user and user.role == "plumber":
+        sidebar_groups = [
+            {
+                "title": "Overview",
+                "links": [{"label": "Dashboard", "url": dashboard_url}],
+            },
+            {
+                "title": "Job Management",
+                "links": [
+                    {"label": "Available Requests", "url": resolve_url("plumber_available_requests", "plumber_dashboard")},
+                    {"label": "Accepted Jobs", "url": resolve_url("plumber_accepted_jobs", "plumber_dashboard")},
+                    {"label": "Completed Jobs", "url": resolve_url("plumber_completed_jobs", "plumber_dashboard")},
+                ],
+            },
+            {
+                "title": "Availability",
+                "links": [
+                    {"label": "Update Availability", "url": resolve_url("plumber_settings", "plumber_dashboard")},
+                    {"label": "Service Areas", "url": resolve_url("plumber_service_areas", "plumber_dashboard")},
+                ],
+            },
+            {
+                "title": "Account",
+                "links": [
+                    {"label": "Profile", "url": profile_url},
+                    {"label": "Ratings", "url": resolve_url("plumber_ratings", "plumber_dashboard")},
+                    {"label": "Logout", "url": resolve_url("logout")},
+                ],
+            },
+        ]
+    elif user and user.role == "admin":
+        sidebar_groups = [
+            {
+                "title": "Overview",
+                "links": [{"label": "Dashboard", "url": resolve_url("admin_dashboard")}],
+            },
+            {
+                "title": "User Management",
+                "links": [
+                    {"label": "Customers", "url": resolve_url("admin_customers", "admin_dashboard")},
+                    {"label": "Plumbers", "url": resolve_url("admin_plumber_records", "admin_dashboard")},
+                ],
+            },
+            {
+                "title": "Service Management",
+                "links": [
+                    {"label": "All Requests", "url": resolve_url("admin_all_requests", "admin_dashboard")},
+                    {"label": "Job Monitoring", "url": resolve_url("admin_job_monitoring", "admin_dashboard")},
+                ],
+            },
+            {
+                "title": "Platform Control",
+                "links": [
+                    {"label": "Notifications", "url": notifications_url},
+                    {"label": "Analytics", "url": resolve_url("admin_analytics", "admin_dashboard")},
+                    {"label": "Reports", "url": resolve_url("admin_reports", "admin_dashboard")},
+                    {"label": "Logout", "url": resolve_url("logout")},
+                ],
+            },
+        ]
+
     return {
         "current_user_data": user,
         "errors": {},
@@ -464,6 +574,13 @@ def inject_common_data():
         "selected_plumber_id": None,
         "issue_types": ISSUE_TYPES,
         "plumbers": [],
+        "alias_routes_enabled": "customer.customer_dashboard" in current_app.view_functions,
+        "sidebar_groups": sidebar_groups,
+        "dashboard_url": dashboard_url,
+        "profile_url": profile_url,
+        "notifications_url": notifications_url,
+        "bookings_url": bookings_url,
+        "settings_url": settings_url,
         "status_styles": STATUS_STYLES,
         "request_progress_steps": REQUEST_PROGRESS_STEPS,
         "request_stage_index": request_stage_index,
@@ -611,6 +728,17 @@ def profile():
     return redirect_for_role(user)
 
 
+def resolve_endpoint(*candidates):
+    for endpoint in candidates:
+        if endpoint in current_app.view_functions:
+            return endpoint
+    return candidates[-1]
+
+
+def resolve_url(*candidates, **values):
+    return url_for(resolve_endpoint(*candidates), **values)
+
+
 @app.route("/plumbers")
 def view_plumbers():
     search_filter = request.args.get("search", "").strip()
@@ -690,44 +818,16 @@ def request_service():
         preferred_date = request.form.get("preferred_date")
         preferred_time = request.form.get("preferred_time", "").strip()
         selected_plumber_id = request.form.get("plumber_id", type=int)
-        plumber = db.session.get(Plumber, selected_plumber_id) if selected_plumber_id else None
+        from services.booking_service import create_service_request
 
-        service_request = ServiceRequest(
+        service_request = create_service_request(
             customer_id=session["user_id"],
             issue_type=issue_type,
             description=description,
             location=location,
             preferred_date=datetime.strptime(preferred_date, "%Y-%m-%d").date() if preferred_date else None,
             preferred_time=preferred_time or None,
-            plumber_id=plumber.id if plumber else None,
-            service_charge=plumber.charges if plumber else issue_charge_estimate(issue_type),
-            status="requested",
-            updated_at=datetime.utcnow(),
-        )
-        db.session.add(service_request)
-        db.session.flush()
-
-        if plumber and plumber.user_id:
-            notify_user(
-                plumber.user_id,
-                f"New service request #{service_request.id} was sent to you.",
-                title="New service request",
-                request_id=service_request.id,
-            )
-        else:
-            for admin in get_admin_users():
-                notify_user(
-                    admin.id,
-                    f"Request #{service_request.id} needs plumber assignment.",
-                    title="Request needs assignment",
-                    request_id=service_request.id,
-                )
-
-        notify_user(
-            session["user_id"],
-            f"Request #{service_request.id} submitted successfully. Track updates from your dashboard.",
-            title="Request created",
-            request_id=service_request.id,
+            plumber_id=selected_plumber_id,
         )
         db.session.commit()
 
@@ -771,6 +871,96 @@ def user_dashboard():
         messages=messages,
         stats=stats,
     )
+
+
+@app.route("/customer/requests")
+def customer_requests():
+    if not role_required("customer"):
+        flash("Customer access is required.", "danger")
+        return redirect(url_for("login"))
+
+    user = current_user()
+    requests_list = ServiceRequest.query.filter_by(customer_id=user.id).order_by(ServiceRequest.created_at.desc()).all()
+    module_items = []
+    for item in requests_list:
+        module_items.append(
+            {
+                "title": f"Request #{item.id}",
+                "subtitle": item.issue_type or "General plumbing request",
+                "status": item.status,
+                "status_label": STATUS_STYLES.get(item.status, item.status.title()),
+                "status_class": item.status,
+                "lines": [
+                    f"Location: {item.location or 'Not shared'}",
+                    f"Plumber: {item.plumber.name if item.plumber else 'Waiting for assignment'}",
+                    f"Created: {item.created_at.strftime('%d %b %Y')}",
+                ],
+                "actions": [{"label": "Open", "url": url_for("request_detail", request_id=item.id), "kind": "secondary"}],
+            }
+        )
+
+    return render_template(
+        "module_list.html",
+        module_eyebrow="Service management",
+        module_title="My Requests",
+        module_description="Track every request that is still open, accepted, in progress, or completed.",
+        module_actions=[{"label": "Create Request", "url": url_for("request_service"), "kind": "primary"}],
+        module_stats=[
+            {"label": "Total Requests", "value": len(requests_list)},
+            {"label": "Open", "value": len([req for req in requests_list if req.status == 'requested'])},
+            {"label": "Active", "value": len([req for req in requests_list if req.status in {'accepted', 'in_progress'}])},
+            {"label": "Completed", "value": len([req for req in requests_list if req.status == 'completed'])},
+        ],
+        module_items=module_items,
+        empty_message="You have not created any requests yet.",
+    )
+
+
+@app.route("/customer/history")
+def customer_history():
+    if not role_required("customer"):
+        flash("Customer access is required.", "danger")
+        return redirect(url_for("login"))
+
+    user = current_user()
+    history = ServiceRequest.query.filter_by(customer_id=user.id, status="completed").order_by(ServiceRequest.created_at.desc()).all()
+    module_items = []
+    for item in history:
+        module_items.append(
+            {
+                "title": f"Request #{item.id}",
+                "subtitle": item.issue_type or "General plumbing request",
+                "status": item.status,
+                "status_label": STATUS_STYLES.get(item.status, item.status.title()),
+                "status_class": item.status,
+                "lines": [
+                    f"Plumber: {item.plumber.name if item.plumber else 'Unassigned'}",
+                    f"Location: {item.location or 'Not shared'}",
+                    f"Completed: {item.updated_at.strftime('%d %b %Y')}",
+                ],
+                "actions": [{"label": "View", "url": url_for("request_detail", request_id=item.id), "kind": "secondary"}],
+            }
+        )
+
+    return render_template(
+        "module_list.html",
+        module_eyebrow="Service management",
+        module_title="Service History",
+        module_description="Browse completed jobs and their outcomes.",
+        module_items=module_items,
+        module_stats=[{"label": "Completed Jobs", "value": len(history)}],
+        empty_message="No completed service history is available yet.",
+    )
+
+
+@app.route("/customer/settings")
+def customer_settings():
+    if not role_required("customer"):
+        flash("Customer access is required.", "danger")
+        return redirect(url_for("login"))
+
+    user = current_user()
+    return render_template("customer_settings.html", user=user)
 
 
 @app.route("/user/profile", methods=["POST"])
@@ -831,6 +1021,211 @@ def plumber_dashboard():
     )
 
 
+@app.route("/plumber/available-requests")
+def plumber_available_requests():
+    if not role_required("plumber"):
+        flash("Plumber access is required.", "danger")
+        return redirect(url_for("login"))
+
+    user = current_user()
+    plumber = user.plumber_profile
+    open_requests = ServiceRequest.query.filter_by(status="requested").order_by(ServiceRequest.created_at.desc()).all()
+    module_items = []
+    for item in open_requests:
+        module_items.append(
+            {
+                "title": f"Request #{item.id}",
+                "subtitle": item.issue_type or "General plumbing request",
+                "status": item.status,
+                "status_label": STATUS_STYLES.get(item.status, item.status.title()),
+                "status_class": item.status,
+                "lines": [
+                    f"Customer: {item.customer.username if item.customer else 'Unknown'}",
+                    f"Location: {item.location or 'Not shared'}",
+                    f"Charge: Rs. {int(item.service_charge)}",
+                ],
+                "actions": [
+                    {"label": "Claim", "url": url_for("claim_request", request_id=item.id)},
+                    {"label": "Open", "url": url_for("request_detail", request_id=item.id), "kind": "secondary"},
+                ],
+            }
+        )
+
+    return render_template(
+        "module_list.html",
+        module_eyebrow="Job management",
+        module_title="Available Requests",
+        module_description="Open requests you can claim and start working on.",
+        module_stats=[
+            {"label": "Available", "value": len(open_requests)},
+            {"label": "Plumber", "value": plumber.name if plumber else "N/A"},
+            {"label": "Area", "value": plumber.service_area if plumber else "N/A"},
+        ],
+        module_items=module_items,
+        empty_message="No open requests are waiting right now.",
+    )
+
+
+@app.route("/plumber/accepted-jobs")
+def plumber_accepted_jobs():
+    if not role_required("plumber"):
+        flash("Plumber access is required.", "danger")
+        return redirect(url_for("login"))
+
+    user = current_user()
+    plumber = user.plumber_profile
+    jobs = ServiceRequest.query.filter(ServiceRequest.plumber_id == plumber.id, ServiceRequest.status.in_(["accepted", "in_progress"])).order_by(ServiceRequest.created_at.desc()).all()
+    module_items = []
+    for item in jobs:
+        module_items.append(
+            {
+                "title": f"Request #{item.id}",
+                "subtitle": item.issue_type or "General plumbing request",
+                "status": item.status,
+                "status_label": STATUS_STYLES.get(item.status, item.status.title()),
+                "status_class": item.status,
+                "lines": [
+                    f"Customer: {item.customer.username if item.customer else 'Unknown'}",
+                    f"Location: {item.location or 'Not shared'}",
+                    f"Updated: {item.updated_at.strftime('%d %b %Y')}",
+                ],
+                "actions": [{"label": "Open", "url": url_for("request_detail", request_id=item.id), "kind": "secondary"}],
+            }
+        )
+
+    return render_template(
+        "module_list.html",
+        module_eyebrow="Job management",
+        module_title="Accepted Jobs",
+        module_description="Jobs that are already in motion.",
+        module_stats=[{"label": "Active Jobs", "value": len(jobs)}],
+        module_items=module_items,
+        empty_message="No accepted jobs yet.",
+    )
+
+
+@app.route("/plumber/completed-jobs")
+def plumber_completed_jobs():
+    if not role_required("plumber"):
+        flash("Plumber access is required.", "danger")
+        return redirect(url_for("login"))
+
+    user = current_user()
+    plumber = user.plumber_profile
+    jobs = ServiceRequest.query.filter_by(plumber_id=plumber.id, status="completed").order_by(ServiceRequest.created_at.desc()).all()
+    module_items = []
+    for item in jobs:
+        module_items.append(
+            {
+                "title": f"Request #{item.id}",
+                "subtitle": item.issue_type or "General plumbing request",
+                "status": item.status,
+                "status_label": STATUS_STYLES.get(item.status, item.status.title()),
+                "status_class": item.status,
+                "lines": [
+                    f"Customer: {item.customer.username if item.customer else 'Unknown'}",
+                    f"Location: {item.location or 'Not shared'}",
+                    f"Completed: {item.updated_at.strftime('%d %b %Y')}",
+                ],
+                "actions": [{"label": "Open", "url": url_for("request_detail", request_id=item.id), "kind": "secondary"}],
+            }
+        )
+
+    return render_template(
+        "module_list.html",
+        module_eyebrow="Job management",
+        module_title="Completed Jobs",
+        module_description="Finished work and service records.",
+        module_stats=[{"label": "Completed", "value": len(jobs)}],
+        module_items=module_items,
+        empty_message="No completed jobs yet.",
+    )
+
+
+@app.route("/plumber/ratings")
+def plumber_ratings():
+    if not role_required("plumber"):
+        flash("Plumber access is required.", "danger")
+        return redirect(url_for("login"))
+
+    user = current_user()
+    plumber = user.plumber_profile
+    ratings = plumber.feedback_entries if plumber else []
+    module_items = []
+    for item in ratings:
+        module_items.append(
+            {
+                "title": f"{item.rating}/5",
+                "subtitle": f"Request #{item.request_id}",
+                "status": "completed",
+                "status_label": "Feedback",
+                "status_class": "completed",
+                "lines": [
+                    f"Comment: {item.comment or 'No written feedback provided.'}",
+                    f"Customer: {item.service_request.customer.username if item.service_request and item.service_request.customer else 'Unknown'}",
+                    f"Date: {item.created_at.strftime('%d %b %Y')}",
+                ],
+            }
+        )
+
+    return render_template(
+        "module_list.html",
+        module_eyebrow="Account",
+        module_title="Ratings",
+        module_description="See feedback left by customers on completed work.",
+        module_stats=[
+            {"label": "Average Rating", "value": plumber.average_rating or "New"},
+            {"label": "Feedback Count", "value": len(ratings)},
+        ],
+        module_items=module_items,
+        empty_message="No ratings have been submitted yet.",
+    )
+
+
+@app.route("/plumber/settings")
+def plumber_settings():
+    if not role_required("plumber"):
+        flash("Plumber access is required.", "danger")
+        return redirect(url_for("login"))
+
+    user = current_user()
+    plumber = user.plumber_profile
+    return render_template("plumber_settings.html", plumber=plumber)
+
+
+@app.route("/plumber/service-areas")
+def plumber_service_areas():
+    if not role_required("plumber"):
+        flash("Plumber access is required.", "danger")
+        return redirect(url_for("login"))
+
+    user = current_user()
+    plumber = user.plumber_profile
+    module_items = [
+        {
+            "title": plumber.name if plumber else "Plumber profile",
+            "subtitle": "Current service coverage",
+            "status": "available" if plumber and plumber.availability_status == "available" else "busy",
+            "status_label": plumber.availability_status.replace("_", " ").title() if plumber else "Not set",
+            "status_class": "success" if plumber and plumber.availability_status == "available" else "neutral",
+            "lines": [
+                f"Service Area: {plumber.service_area or 'Not set'}",
+                f"Specialties: {plumber.specialties or 'General plumbing'}",
+                f"Bio: {plumber.bio or 'No summary provided.'}",
+            ],
+            "actions": [{"label": "Update Availability", "url": url_for("plumber_settings"), "kind": "secondary"}],
+        }
+    ]
+    return render_template(
+        "module_list.html",
+        module_eyebrow="Availability",
+        module_title="Service Areas",
+        module_description="Review where you work and what services you support.",
+        module_items=module_items,
+        empty_message="Service areas are not configured yet.",
+    )
+
+
 @app.route("/plumber/profile", methods=["POST"])
 def update_plumber_profile():
     if not role_required("plumber"):
@@ -882,6 +1277,203 @@ def admin_dashboard():
         active_requests=active_requests,
         completed_requests=completed_requests,
         stats=stats,
+    )
+
+
+@app.route("/admin/customers")
+def admin_customers():
+    if not role_required("admin"):
+        flash("Admin access is required.", "danger")
+        return redirect(url_for("login"))
+
+    customers = User.query.filter_by(role="customer").order_by(User.created_at.desc()).all()
+    module_items = []
+    for user in customers:
+        module_items.append(
+            {
+                "title": user.username,
+                "subtitle": user.email,
+                "status": "customer",
+                "status_label": "Customer",
+                "status_class": "requested",
+                "lines": [
+                    f"Phone: {user.phone or 'Not provided'}",
+                    f"Joined: {user.created_at.strftime('%d %b %Y')}",
+                    f"Requests: {len(user.customer_requests)}",
+                ],
+            }
+        )
+
+    return render_template(
+        "module_list.html",
+        module_eyebrow="User management",
+        module_title="Customers",
+        module_description="Review customer accounts and activity.",
+        module_stats=[{"label": "Customers", "value": len(customers)}],
+        module_items=module_items,
+        empty_message="No customer accounts found.",
+    )
+
+
+@app.route("/admin/plumber-records")
+def admin_plumber_records():
+    if not role_required("admin"):
+        flash("Admin access is required.", "danger")
+        return redirect(url_for("login"))
+
+    plumbers = Plumber.query.order_by(Plumber.created_at.desc()).all()
+    module_items = []
+    for plumber in plumbers:
+        module_items.append(
+            {
+                "title": plumber.name,
+                "subtitle": plumber.service_area or "Service area not set",
+                "status": "verified" if plumber.is_verified else "pending",
+                "status_label": "Verified" if plumber.is_verified else "Pending",
+                "status_class": "success" if plumber.is_verified else "accent",
+                "lines": [
+                    f"Experience: {plumber.years_of_experience} years",
+                    f"Rating: {plumber.average_rating or 'New'}",
+                    f"Active: {'Yes' if plumber.is_active else 'No'}",
+                ],
+            }
+        )
+
+    return render_template(
+        "module_list.html",
+        module_eyebrow="User management",
+        module_title="Plumbers",
+        module_description="Verify and monitor plumber accounts.",
+        module_stats=[{"label": "Plumbers", "value": len(plumbers)}],
+        module_items=module_items,
+        empty_message="No plumber accounts found.",
+    )
+
+
+@app.route("/admin/all-requests")
+def admin_all_requests():
+    if not role_required("admin"):
+        flash("Admin access is required.", "danger")
+        return redirect(url_for("login"))
+
+    requests_list = ServiceRequest.query.order_by(ServiceRequest.created_at.desc()).all()
+    module_items = []
+    for item in requests_list:
+        module_items.append(
+            {
+                "title": f"Request #{item.id}",
+                "subtitle": item.issue_type or "General plumbing request",
+                "status": item.status,
+                "status_label": STATUS_STYLES.get(item.status, item.status.title()),
+                "status_class": item.status,
+                "lines": [
+                    f"Customer: {item.customer.username if item.customer else 'Unknown'}",
+                    f"Plumber: {item.plumber.name if item.plumber else 'Unassigned'}",
+                    f"Location: {item.location or 'Not shared'}",
+                ],
+                "actions": [{"label": "Open", "url": url_for("request_detail", request_id=item.id), "kind": "secondary"}],
+            }
+        )
+
+    return render_template(
+        "module_list.html",
+        module_eyebrow="Service management",
+        module_title="All Requests",
+        module_description="Review the full request pipeline from one place.",
+        module_stats=[
+            {"label": "Total Requests", "value": len(requests_list)},
+            {"label": "Open", "value": len([req for req in requests_list if req.status == 'requested'])},
+            {"label": "Active", "value": len([req for req in requests_list if req.status in {'accepted', 'in_progress'}])},
+            {"label": "Completed", "value": len([req for req in requests_list if req.status == 'completed'])},
+        ],
+        module_items=module_items,
+        empty_message="No requests have been created yet.",
+    )
+
+
+@app.route("/admin/job-monitoring")
+def admin_job_monitoring():
+    if not role_required("admin"):
+        flash("Admin access is required.", "danger")
+        return redirect(url_for("login"))
+
+    jobs = ServiceRequest.query.filter(ServiceRequest.status.in_(["requested", "accepted", "in_progress"])).order_by(ServiceRequest.created_at.desc()).all()
+    module_items = []
+    for item in jobs:
+        module_items.append(
+            {
+                "title": f"Request #{item.id}",
+                "subtitle": item.issue_type or "General plumbing request",
+                "status": item.status,
+                "status_label": STATUS_STYLES.get(item.status, item.status.title()),
+                "status_class": item.status,
+                "lines": [
+                    f"Customer: {item.customer.username if item.customer else 'Unknown'}",
+                    f"Plumber: {item.plumber.name if item.plumber else 'Unassigned'}",
+                    f"Updated: {item.updated_at.strftime('%d %b %Y')}",
+                ],
+            }
+        )
+
+    return render_template(
+        "module_list.html",
+        module_eyebrow="Service management",
+        module_title="Job Monitoring",
+        module_description="Watch work currently in motion.",
+        module_stats=[{"label": "Active Jobs", "value": len(jobs)}],
+        module_items=module_items,
+        empty_message="No active jobs are being monitored right now.",
+    )
+
+
+@app.route("/admin/analytics")
+def admin_analytics():
+    if not role_required("admin"):
+        flash("Admin access is required.", "danger")
+        return redirect(url_for("login"))
+
+    metrics = {
+        "customers": User.query.filter_by(role="customer").count(),
+        "plumbers": Plumber.query.count(),
+        "requests": ServiceRequest.query.count(),
+        "completed": ServiceRequest.query.filter_by(status="completed").count(),
+    }
+    return render_template(
+        "module_list.html",
+        module_eyebrow="Platform control",
+        module_title="Analytics",
+        module_description="High-level platform metrics and operational signals.",
+        module_actions=[{"label": "Download CSV Report", "url": url_for("request_report_csv"), "kind": "primary"}],
+        module_stats=[
+            {"label": "Customers", "value": metrics["customers"]},
+            {"label": "Plumbers", "value": metrics["plumbers"]},
+            {"label": "Requests", "value": metrics["requests"]},
+            {"label": "Completed", "value": metrics["completed"]},
+        ],
+        empty_message="Analytics are shown in the summary cards above.",
+    )
+
+
+@app.route("/admin/reports")
+def admin_reports():
+    if not role_required("admin"):
+        flash("Admin access is required.", "danger")
+        return redirect(url_for("login"))
+
+    return render_template(
+        "module_list.html",
+        module_eyebrow="Platform control",
+        module_title="Reports",
+        module_description="Export service requests and platform records.",
+        module_actions=[
+            {"label": "Download Requests CSV", "url": url_for("request_report_csv"), "kind": "primary"},
+            {"label": "Open Analytics", "url": url_for("admin_analytics"), "kind": "secondary"},
+        ],
+        module_stats=[
+            {"label": "Report Format", "value": "CSV"},
+            {"label": "Source", "value": "Live Database"},
+        ],
+        empty_message="Use the actions above to export reports.",
     )
 
 

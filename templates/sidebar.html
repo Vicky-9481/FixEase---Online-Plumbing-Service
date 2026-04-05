@@ -1,0 +1,13 @@
+<aside class="sidebar">
+    <div class="sidebar-card">
+        <div class="sidebar-title">Menu</div>
+        {% for group in sidebar_groups %}
+            <div class="sidebar-group">
+                <div class="sidebar-group-title">{{ group.title }}</div>
+                {% for link in group.links %}
+                    <a href="{{ link.url }}">{{ link.label }}</a>
+                {% endfor %}
+            </div>
+        {% endfor %}
+    </div>
+</aside>

@@ -1,5 +1,5 @@
 const navToggle = document.querySelector("[data-nav-toggle]");
-const nav = document.querySelector("[data-nav]");
+const nav = document.querySelector(".top-nav");
 
 if (navToggle && nav) {
   navToggle.addEventListener("click", () => {

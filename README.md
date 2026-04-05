@@ -30,7 +30,7 @@ The app will create the database and tables automatically when it starts, as lon
 ## 3. Run the app
 
 ```powershell
-python main.py
+python app.py
 ```
 
 Open `http://127.0.0.1:5000`

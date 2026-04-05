@@ -1,5 +1,4 @@
 {% extends "base.html" %}
-{% from "_icons.html" import ui_icon %}
 
 {% block title %}Plumber Dashboard{% endblock %}
 
@@ -7,9 +6,9 @@
 <section class="panel reveal">
     <div class="section-header">
         <div>
-            <span class="eyebrow">Plumber workspace</span>
+            <span class="eyebrow">Plumber overview</span>
             <h1 class="dashboard-title">{{ plumber.name }}</h1>
-            <p class="muted">Manage open jobs, update availability, and close requests with confidence.</p>
+            <p class="muted">Manage your workload, availability, and ratings from a focused control center.</p>
         </div>
         <div class="chip-row">
             <span class="badge {% if plumber.is_verified %}success{% else %}accent{% endif %}">{% if plumber.is_verified %}Verified{% else %}Pending verification{% endif %}</span>
@@ -22,150 +21,38 @@
 <section class="stats-grid reveal">
     <article class="stat-card"><span class="muted">Open Jobs</span><strong>{{ stats.open_jobs }}</strong></article>
     <article class="stat-card"><span class="muted">Active Jobs</span><strong>{{ stats.active_jobs }}</strong></article>
-    <article class="stat-card"><span class="muted">Completed</span><strong>{{ stats.completed_jobs }}</strong></article>
-    <article class="stat-card"><span class="muted">Closed</span><strong>{{ stats.closed_jobs }}</strong></article>
-</section>
-
-<section class="split-grid reveal">
-    <div class="panel">
-        <div class="section-header">
-            <div>
-                <span class="eyebrow">{{ ui_icon("profile") }}</span>
-                <h2 class="section-title">Update profile</h2>
-            </div>
-        </div>
-        <form method="POST" action="{{ url_for('update_plumber_profile') }}" class="form-grid">
-            <div>
-                <label for="availability_status">Availability</label>
-                <select id="availability_status" name="availability_status">
-                    <option value="available" {% if plumber.availability_status == 'available' %}selected{% endif %}>Available</option>
-                    <option value="busy" {% if plumber.availability_status == 'busy' %}selected{% endif %}>Busy</option>
-                    <option value="offline" {% if plumber.availability_status == 'offline' %}selected{% endif %}>Offline</option>
-                </select>
-            </div>
-            <div>
-                <label for="service_area">Service Area</label>
-                <input id="service_area" name="service_area" type="text" value="{{ plumber.service_area or '' }}" placeholder="Update service area">
-            </div>
-            <div class="span-full">
-                <label for="bio">Bio</label>
-                <textarea id="bio" name="bio" placeholder="Share your service summary">{{ plumber.bio or '' }}</textarea>
-            </div>
-            <div class="span-full">
-                <button type="submit">Save Profile</button>
-            </div>
-        </form>
-    </div>
-
-    <div class="panel">
-        <div class="section-header">
-            <div>
-                <span class="eyebrow">{{ ui_icon("track") }}</span>
-                <h2 class="section-title">Recent notifications</h2>
-            </div>
-            <a class="button alt" href="{{ url_for('notifications') }}">All notifications</a>
-        </div>
-        {% if notifications %}
-            {% for note in notifications %}
-                <a class="notification-row" href="{{ url_for('open_notification', notification_id=note.id) }}">
-                    <div class="toolbar">
-                        <div class="stack">
-                            <span class="badge">{{ note.title or 'Update' }}</span>
-                            <strong>{{ note.created_at.strftime("%d %b %Y %I:%M %p") }}</strong>
-                            <p class="muted">{{ note.message }}</p>
-                        </div>
-                        <div class="chip-row">
-                            {% if note.request_id %}
-                                <span class="badge neutral">Request #{{ note.request_id }}</span>
-                            {% endif %}
-                            <span class="badge {% if note.is_read %}success{% else %}accent{% endif %}">{{ 'Read' if note.is_read else 'Open' }}</span>
-                        </div>
-                    </div>
-                </a>
-            {% endfor %}
-        {% else %}
-            <div class="empty-state">No notifications available.</div>
-        {% endif %}
-    </div>
+    <article class="stat-card"><span class="muted">Completed Jobs</span><strong>{{ stats.completed_jobs }}</strong></article>
+    <article class="stat-card"><span class="muted">Ratings</span><strong>{{ plumber.average_rating or "New" }}{% if plumber.average_rating %}/5{% endif %}</strong></article>
 </section>
 
 <section class="panel reveal">
     <div class="section-header">
         <div>
-            <span class="eyebrow">{{ ui_icon("assign") }}</span>
-            <h2 class="section-title">Work queues</h2>
-            <p class="muted">Open requests can be claimed. Active requests should move forward quickly.</p>
+            <span class="eyebrow">Quick actions</span>
+            <h2 class="section-title">Module shortcuts</h2>
         </div>
     </div>
-
-    <div class="split-grid">
-        <div class="stack">
-            <h3>Open jobs</h3>
-            {% if open_requests %}
-                {% for item in open_requests %}
-                    <article class="plumber-card">
-                        <div class="toolbar">
-                            <span class="badge neutral">Request #{{ item.id }}</span>
-                            <span class="badge accent">Open</span>
-                        </div>
-                        <h3>{{ item.issue_type or "General" }}</h3>
-                        <div class="stack">
-                            <div class="inline-note">{{ ui_icon("profile") }} {{ item.customer.username }}</div>
-                            <div class="inline-note">{{ ui_icon("location") }} {{ item.location or "Not shared" }}</div>
-                            <p class="muted line-clamp-2">{{ item.description }}</p>
-                        </div>
-                        <div class="plumber-actions">
-                            <form method="POST" action="{{ url_for('claim_request', request_id=item.id) }}">
-                                <button type="submit">Claim</button>
-                            </form>
-                            <a class="button alt" href="{{ url_for('request_detail', request_id=item.id) }}">View</a>
-                        </div>
-                    </article>
-                {% endfor %}
-            {% else %}
-                <div class="empty-state">No open jobs waiting for claim.</div>
-            {% endif %}
-        </div>
-
-        <div class="stack">
-            <h3>Active jobs</h3>
-            {% if active_requests %}
-                {% for item in active_requests %}
-                    <article class="plumber-card">
-                        <div class="toolbar">
-                            <span class="badge neutral">Request #{{ item.id }}</span>
-                            <span class="status {{ item.status }}">{{ status_styles[item.status] }}</span>
-                        </div>
-                        <h3>{{ item.issue_type or "General" }}</h3>
-                        <div class="stack">
-                            <div class="inline-note">{{ ui_icon("profile") }} {{ item.customer.username }}</div>
-                            <div class="inline-note">{{ ui_icon("location") }} {{ item.location or "Not shared" }}</div>
-                        </div>
-                        <div class="progress-timeline">
-                            {% for step_key, step_label in request_progress_steps %}
-                                <div class="timeline-step {% if request_stage_index(item.status) >= loop.index0 %}done{% endif %} {% if item.status == step_key %}current{% endif %}">
-                                    <span class="timeline-dot"></span>
-                                    <span>{{ step_label }}</span>
-                                </div>
-                            {% endfor %}
-                        </div>
-                        <div class="plumber-actions">
-                            <form method="POST" action="{{ url_for('update_request_status', request_id=item.id) }}">
-                                <input type="hidden" name="status" value="in_progress">
-                                <button type="submit">Start</button>
-                            </form>
-                            <form method="POST" action="{{ url_for('update_request_status', request_id=item.id) }}">
-                                <input type="hidden" name="status" value="completed">
-                                <button type="submit">Complete</button>
-                            </form>
-                            <a class="button alt" href="{{ url_for('request_detail', request_id=item.id) }}">Open</a>
-                        </div>
-                    </article>
-                {% endfor %}
-            {% else %}
-                <div class="empty-state">No active jobs right now.</div>
-            {% endif %}
-        </div>
+    <div class="card-grid">
+        <a class="summary-card action-card" href="{{ url_for('plumber_available_requests') }}">
+            <h3>Available Requests</h3>
+            <p>See jobs you can claim.</p>
+        </a>
+        <a class="summary-card action-card" href="{{ url_for('plumber_accepted_jobs') }}">
+            <h3>Accepted Jobs</h3>
+            <p>Review active work in progress.</p>
+        </a>
+        <a class="summary-card action-card" href="{{ url_for('plumber_completed_jobs') }}">
+            <h3>Completed Jobs</h3>
+            <p>Check finished assignments.</p>
+        </a>
+        <a class="summary-card action-card" href="{{ url_for('plumber_settings') }}">
+            <h3>Update Availability</h3>
+            <p>Adjust schedule and service area.</p>
+        </a>
+        <a class="summary-card action-card" href="{{ url_for('plumber_ratings') }}">
+            <h3>Ratings</h3>
+            <p>View customer feedback.</p>
+        </a>
     </div>
 </section>
 {% endblock %}

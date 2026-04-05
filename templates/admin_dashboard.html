@@ -7,9 +7,9 @@
 <section class="panel reveal">
     <div class="section-header">
         <div>
-            <span class="eyebrow">Admin operations</span>
+            <span class="eyebrow">Admin overview</span>
             <h1 class="dashboard-title">Control center</h1>
-            <p class="muted">Manage users, verify plumbers, assign requests, and download reports from one place.</p>
+            <p class="muted">Monitor the platform and jump straight into management modules.</p>
         </div>
         <div class="hero-actions">
             <a class="button" href="{{ url_for('add_plumber') }}">Create plumber account</a>
@@ -30,211 +30,31 @@
 <section class="panel reveal">
     <div class="section-header">
         <div>
-            <span class="eyebrow">{{ ui_icon("track") }}</span>
-            <h2 class="section-title">Operations snapshot</h2>
+            <span class="eyebrow">Quick actions</span>
+            <h2 class="section-title">Module shortcuts</h2>
         </div>
     </div>
     <div class="card-grid">
-        <article class="summary-card">
-            <h3>Requested</h3>
-            <p>Unassigned jobs waiting for a plumber or admin action.</p>
-            <strong>{{ requested_requests|length }}</strong>
-        </article>
-        <article class="summary-card">
-            <h3>Active</h3>
-            <p>Accepted or in-progress jobs that need follow-through.</p>
-            <strong>{{ active_requests|length }}</strong>
-        </article>
-        <article class="summary-card">
-            <h3>Completed</h3>
-            <p>Closed requests ready for history, feedback, and reporting.</p>
-            <strong>{{ completed_requests|length }}</strong>
-        </article>
-    </div>
-</section>
-
-<section class="panel reveal">
-    <div class="section-header">
-        <div>
-            <span class="eyebrow">{{ ui_icon("assign") }}</span>
-            <h2 class="section-title">Pending plumber verification</h2>
-        </div>
-    </div>
-    {% if pending_plumbers %}
-        <div class="plumber-grid">
-            {% for plumber in pending_plumbers %}
-                <article class="plumber-card">
-                    <div class="toolbar">
-                        <div class="profile-photo">{{ plumber.name[:1].upper() }}{{ plumber.name[1:2].upper() }}</div>
-                        <span class="badge accent">Pending</span>
-                    </div>
-                    <h3>{{ plumber.name }}</h3>
-                    <div class="stack">
-                        <div class="inline-note">{{ ui_icon("location") }} {{ plumber.service_area or "Not specified" }}</div>
-                        <div class="inline-note">{{ ui_icon("specialty") }} {{ plumber.specialties or "General plumbing" }}</div>
-                        <p class="muted line-clamp-2">{{ plumber.bio or "No profile summary provided." }}</p>
-                    </div>
-                    <form method="POST" action="{{ url_for('toggle_plumber_verification', plumber_id=plumber.id) }}">
-                        <button type="submit">Verify plumber</button>
-                    </form>
-                </article>
-            {% endfor %}
-        </div>
-    {% else %}
-        <div class="empty-state">No plumber registrations are waiting for review.</div>
-    {% endif %}
-</section>
-
-<section class="panel reveal">
-    <div class="section-header">
-        <div>
-            <span class="eyebrow">{{ ui_icon("assign") }}</span>
-            <h2 class="section-title">All service requests</h2>
-        </div>
-    </div>
-    {% if all_requests %}
-        <div class="table-shell">
-            <table>
-                <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>Customer</th>
-                        <th>Plumber</th>
-                        <th>Issue</th>
-                        <th>Status</th>
-                        <th>Assign</th>
-                        <th>Actions</th>
-                        <th>Open</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for item in all_requests %}
-                        <tr>
-                            <td>#{{ item.id }}</td>
-                            <td>{{ item.customer.username if item.customer else "Unknown" }}</td>
-                            <td>{{ item.plumber.name if item.plumber else "Unassigned" }}</td>
-                            <td>{{ item.issue_type or "General" }}</td>
-                            <td><span class="status {{ item.status }}">{{ status_styles[item.status] }}</span></td>
-                            <td>
-                                <form method="POST" action="{{ url_for('admin_assign_request', request_id=item.id) }}" class="stack">
-                                    <select name="plumber_id" required>
-                                        <option value="">Select plumber</option>
-                                        {% for plumber in plumbers if plumber.is_verified and plumber.is_active %}
-                                            <option value="{{ plumber.id }}">{{ plumber.name }}</option>
-                                        {% endfor %}
-                                    </select>
-                                    <button type="submit">Assign</button>
-                                </form>
-                            </td>
-                            <td>
-                                <div class="action-grid">
-                                    <form method="POST" action="{{ url_for('update_request_status', request_id=item.id) }}">
-                                        <input type="hidden" name="status" value="accepted">
-                                        <button type="submit">Accept</button>
-                                    </form>
-                                    <form method="POST" action="{{ url_for('update_request_status', request_id=item.id) }}">
-                                        <input type="hidden" name="status" value="in_progress">
-                                        <button type="submit">Start</button>
-                                    </form>
-                                    <form method="POST" action="{{ url_for('update_request_status', request_id=item.id) }}">
-                                        <input type="hidden" name="status" value="completed">
-                                        <button type="submit">Complete</button>
-                                    </form>
-                                    <form method="POST" action="{{ url_for('update_request_status', request_id=item.id) }}">
-                                        <input type="hidden" name="status" value="rejected">
-                                        <button type="submit">Reject</button>
-                                    </form>
-                                </div>
-                            </td>
-                            <td><a class="button alt" href="{{ url_for('request_detail', request_id=item.id) }}">Open</a></td>
-                        </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-    {% else %}
-        <div class="empty-state">No service requests are available yet.</div>
-    {% endif %}
-</section>
-
-<section class="split-grid reveal">
-    <div class="panel">
-        <div class="section-header">
-            <div>
-                <span class="eyebrow">{{ ui_icon("profile") }}</span>
-                <h2 class="section-title">Plumber management</h2>
-            </div>
-        </div>
-        {% if plumbers %}
-            <div class="table-shell">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Name</th>
-                            <th>Verification</th>
-                            <th>Active</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for plumber in plumbers %}
-                            <tr>
-                                <td>{{ plumber.name }}</td>
-                                <td>{{ "Verified" if plumber.is_verified else "Pending" }}</td>
-                                <td>{{ "Yes" if plumber.is_active else "No" }}</td>
-                                <td>
-                                    <div class="action-grid">
-                                        <form method="POST" action="{{ url_for('toggle_plumber_verification', plumber_id=plumber.id) }}">
-                                            <button type="submit">{{ "Set Pending" if plumber.is_verified else "Verify" }}</button>
-                                        </form>
-                                        <form method="POST" action="{{ url_for('toggle_plumber_active', plumber_id=plumber.id) }}">
-                                            <button type="submit">{{ "Deactivate" if plumber.is_active else "Activate" }}</button>
-                                        </form>
-                                    </div>
-                                </td>
-                            </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-        {% else %}
-            <div class="empty-state">No plumber accounts created yet.</div>
-        {% endif %}
-    </div>
-
-    <div class="panel">
-        <div class="section-header">
-            <div>
-                <span class="eyebrow">{{ ui_icon("history") }}</span>
-                <h2 class="section-title">Latest users</h2>
-            </div>
-        </div>
-        {% if users %}
-            <div class="table-shell">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Username</th>
-                            <th>Email</th>
-                            <th>Role</th>
-                            <th>Joined</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for user in users %}
-                            <tr>
-                                <td>{{ user.username }}</td>
-                                <td>{{ user.email }}</td>
-                                <td>{{ user.role.title() }}</td>
-                                <td>{{ user.created_at.strftime("%d %b %Y") }}</td>
-                            </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-        {% else %}
-            <div class="empty-state">No users found.</div>
-        {% endif %}
+        <a class="summary-card action-card" href="{{ url_for('admin_customers') }}">
+            <h3>Customers</h3>
+            <p>Review user accounts.</p>
+        </a>
+        <a class="summary-card action-card" href="{{ url_for('admin_plumber_records') }}">
+            <h3>Plumbers</h3>
+            <p>Manage provider records.</p>
+        </a>
+        <a class="summary-card action-card" href="{{ url_for('admin_all_requests') }}">
+            <h3>All Requests</h3>
+            <p>Inspect and assign jobs.</p>
+        </a>
+        <a class="summary-card action-card" href="{{ url_for('admin_analytics') }}">
+            <h3>Analytics</h3>
+            <p>Check performance metrics.</p>
+        </a>
+        <a class="summary-card action-card" href="{{ url_for('admin_reports') }}">
+            <h3>Reports</h3>
+            <p>Download operational reports.</p>
+        </a>
     </div>
 </section>
 {% endblock %}

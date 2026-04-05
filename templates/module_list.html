@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+
+{% block title %}{{ module_title }}{% endblock %}
+
+{% block content %}
+<section class="panel reveal">
+    <div class="section-header">
+        <div>
+            <span class="eyebrow">{{ module_eyebrow or "Marketplace module" }}</span>
+            <h1 class="dashboard-title">{{ module_title }}</h1>
+            {% if module_description %}<p class="muted">{{ module_description }}</p>{% endif %}
+        </div>
+        {% if module_actions %}
+            <div class="hero-actions">
+                {% for action in module_actions %}
+                    <a class="button {% if action.kind == 'secondary' %}alt{% endif %}" href="{{ action.url }}">{{ action.label }}</a>
+                {% endfor %}
+            </div>
+        {% endif %}
+    </div>
+</section>
+
+{% if module_stats %}
+<section class="stats-grid reveal">
+    {% for stat in module_stats %}
+        <article class="stat-card">
+            <span class="muted">{{ stat.label }}</span>
+            <strong>{{ stat.value }}</strong>
+        </article>
+    {% endfor %}
+</section>
+{% endif %}
+
+<section class="panel reveal">
+    {% if module_items %}
+        <div class="plumber-grid">
+            {% for item in module_items %}
+                <article class="plumber-card">
+                    <div class="toolbar">
+                        <div class="stack">
+                            <strong>{{ item.title }}</strong>
+                            {% if item.subtitle %}<span class="muted">{{ item.subtitle }}</span>{% endif %}
+                        </div>
+                        {% if item.status %}
+                            <span class="status {{ item.status_class or item.status }}">{{ item.status_label or item.status|title }}</span>
+                        {% endif %}
+                    </div>
+                    {% if item.lines %}
+                        <div class="stack">
+                            {% for line in item.lines %}
+                                <div class="inline-note">{{ line }}</div>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                    {% if item.actions %}
+                        <div class="plumber-actions">
+                            {% for action in item.actions %}
+                                <a class="button {% if action.kind == 'secondary' %}alt{% endif %}" href="{{ action.url }}">{{ action.label }}</a>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </article>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="empty-state">{{ empty_message or "No records available." }}</div>
+    {% endif %}
+</section>
+{% endblock %}
