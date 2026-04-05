@@ -1,49 +1,118 @@
 {% extends "base.html" %}
+{% from "_icons.html" import ui_icon %}
 
 {% block title %}Notifications{% endblock %}
 
 {% block content %}
-<section class="page-header reveal">
-    <div>
+<section class="hero-banner notification-banner reveal">
+    <div class="hero-copy">
         <span class="eyebrow">Communication</span>
         <h1>Notifications</h1>
-        <p>Stay on top of assignments, accepted jobs, progress updates, and service actions.</p>
+        <p>Track assignments, message updates, approvals, and service milestones from a single inbox.</p>
+    </div>
+    <div class="hero-metrics">
+        <div class="metric-chip">
+            <span>Total</span>
+            <strong>{{ stats.total }}</strong>
+        </div>
+        <div class="metric-chip">
+            <span>Unread</span>
+            <strong>{{ stats.unread }}</strong>
+        </div>
+        <div class="metric-chip">
+            <span>Actionable</span>
+            <strong>{{ stats.actionable }}</strong>
+        </div>
     </div>
 </section>
 
-<section class="notification-list reveal">
-    {% for note in notifications %}
-        {% set kind = 'teal' if 'assigned' in note.message|lower or 'assigned' in (note.title or '')|lower else 'blue' if 'accepted' in note.message|lower or 'accepted' in (note.title or '')|lower else 'gray' %}
-        <article class="notification-card {% if not note.is_read %}unread{% endif %}">
-            <div class="note-border"></div>
-            <div class="note-icon {{ kind }}">
-                {% if kind == 'teal' %}
-                    A
-                {% elif kind == 'blue' %}
-                    C
-                {% else %}
-                    U
-                {% endif %}
-            </div>
-            <div class="notification-content">
-                <div class="notification-top">
-                    <span class="badge {% if kind == 'teal' %}success{% elif kind == 'blue' %}accent{% else %}neutral{% endif %}">
-                        {{ note.title or 'Update' }}
-                    </span>
-                    <small>{{ note.created_at.strftime("%d %b %Y %I:%M %p") }}</small>
-                </div>
-                <p class="notification-message">{{ note.message }}</p>
-                <div class="notification-bottom">
-                    <span class="muted">Customer: {{ request_customer_name(note) or "N/A" }}</span>
-                    <div class="notification-actions">
-                        <span class="badge {% if note.is_read %}success{% else %}accent{% endif %}">{{ "Read" if note.is_read else "Unread" }}</span>
-                        <a class="btn-secondary" href="{{ url_for('open_notification', notification_id=note.id) }}">{{ "Open" if note.is_read else "Read" }}</a>
+<section class="panel reveal notification-panel">
+    <div class="section-head notification-head">
+        <div>
+            <span class="eyebrow">Inbox</span>
+            <h2>Message center</h2>
+            <p class="muted">Use the filters to focus on unread items, assignments, or request updates.</p>
+        </div>
+        <form method="GET" class="notification-toolbar">
+            <label class="notification-search">
+                <span class="sr-only">Search notifications</span>
+                <input type="search" name="q" value="{{ query_text }}" placeholder="Search title or message">
+            </label>
+            <label class="notification-filter">
+                <span class="sr-only">Filter notifications</span>
+                <select name="status">
+                    <option value="all" {% if status_filter == 'all' %}selected{% endif %}>All</option>
+                    <option value="unread" {% if status_filter == 'unread' %}selected{% endif %}>Unread</option>
+                    <option value="read" {% if status_filter == 'read' %}selected{% endif %}>Read</option>
+                    <option value="assigned" {% if status_filter == 'assigned' %}selected{% endif %}>Assigned</option>
+                    <option value="accepted" {% if status_filter == 'accepted' %}selected{% endif %}>Accepted</option>
+                    <option value="completed" {% if status_filter == 'completed' %}selected{% endif %}>Completed</option>
+                    <option value="message" {% if status_filter == 'message' %}selected{% endif %}>Messages</option>
+                    <option value="update" {% if status_filter == 'update' %}selected{% endif %}>Updates</option>
+                </select>
+            </label>
+            <label class="notification-sort">
+                <span class="sr-only">Sort notifications</span>
+                <select name="sort">
+                    <option value="newest" {% if sort_mode == 'newest' %}selected{% endif %}>Newest</option>
+                    <option value="oldest" {% if sort_mode == 'oldest' %}selected{% endif %}>Oldest</option>
+                </select>
+            </label>
+            <button class="btn-primary" type="submit">Apply</button>
+        </form>
+    </div>
+
+    <div class="notification-chip-row">
+        <a class="filter-chip {% if status_filter == 'all' %}active{% endif %}" href="{{ url_for('notifications', q=query_text, status='all', sort=sort_mode) }}">All</a>
+        <a class="filter-chip {% if status_filter == 'unread' %}active{% endif %}" href="{{ url_for('notifications', q=query_text, status='unread', sort=sort_mode) }}">Unread</a>
+        <a class="filter-chip {% if status_filter == 'assigned' %}active{% endif %}" href="{{ url_for('notifications', q=query_text, status='assigned', sort=sort_mode) }}">Assigned</a>
+        <a class="filter-chip {% if status_filter == 'accepted' %}active{% endif %}" href="{{ url_for('notifications', q=query_text, status='accepted', sort=sort_mode) }}">Accepted</a>
+        <a class="filter-chip {% if status_filter == 'completed' %}active{% endif %}" href="{{ url_for('notifications', q=query_text, status='completed', sort=sort_mode) }}">Completed</a>
+        {% if stats.unread %}
+            <form method="POST" action="{{ url_for('mark_all_notifications_read') }}">
+                <button class="filter-chip filter-action" type="submit">Mark all read</button>
+            </form>
+        {% endif %}
+    </div>
+
+    {% if notifications %}
+        <div class="notification-list inbox-list">
+            {% for item in notifications %}
+                {% set note = item.notification %}
+                {% set category = item.category %}
+                <article class="notification-card {% if not note.is_read %}unread{% endif %}">
+                    <div class="note-border"></div>
+                    <div class="note-icon {{ category.tone }}">
+                        {{ ui_icon(category.icon) }}
                     </div>
-                </div>
-            </div>
-        </article>
+                    <div class="notification-content">
+                        <div class="notification-top">
+                            <span class="badge {{ category.tone }}">{{ item.category.label }}</span>
+                            <small>{{ note.created_at.strftime("%d %b %Y %I:%M %p") }}</small>
+                        </div>
+                        <p class="notification-message">{{ note.title or "Notification" }}</p>
+                        <p class="notification-copy-text">{{ note.message }}</p>
+                        <div class="notification-bottom">
+                            <div class="notification-meta-row">
+                                <span class="muted">Customer: {{ item.customer_name or "N/A" }}</span>
+                                {% if note.request_id %}
+                                    <span class="badge neutral">Request #{{ note.request_id }}</span>
+                                {% endif %}
+                            </div>
+                            <div class="notification-actions">
+                                <span class="badge {% if note.is_read %}success{% else %}accent{% endif %}">{{ item.read_label }}</span>
+                                <a class="btn-secondary" href="{{ url_for('open_notification', notification_id=note.id) }}">{{ item.action_label }}</a>
+                            </div>
+                        </div>
+                    </div>
+                </article>
+            {% endfor %}
+        </div>
     {% else %}
-        <div class="empty-state">You do not have any notifications yet.</div>
-    {% endfor %}
+        <div class="empty-state">
+            <strong>No notifications match this view.</strong>
+            <p class="muted">Try clearing filters or checking a different category.</p>
+        </div>
+    {% endif %}
 </section>
 {% endblock %}

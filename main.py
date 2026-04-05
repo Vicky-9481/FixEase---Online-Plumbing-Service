@@ -386,6 +386,21 @@ def notify_user(user_id, message, *, title=None, target_url=None, request_id=Non
     )
 
 
+def request_customer_name(notification):
+    if not notification or not notification.request_id:
+        return None
+
+    service_request = getattr(notification, "related_request", None)
+    if service_request and service_request.customer:
+        return service_request.customer.username
+
+    request_row = db.session.get(ServiceRequest, notification.request_id)
+    if request_row and request_row.customer:
+        return request_row.customer.username
+
+    return None
+
+
 def send_platform_message(sender_id, receiver_id, subject, body, request_id=None):
     if not receiver_id or sender_id == receiver_id:
         return
@@ -588,17 +603,6 @@ def inject_common_data():
     if user:
         unread_notifications = Notification.query.filter_by(user_id=user.id, is_read=False).count()
         unread_messages = Message.query.filter_by(receiver_id=user.id, is_read=False).count()
-
-    def request_customer_name(notification):
-        if not notification or not notification.request_id:
-            return None
-        service_request = getattr(notification, "related_request", None)
-        if service_request and service_request.customer:
-            return service_request.customer.username
-        request_row = db.session.get(ServiceRequest, notification.request_id)
-        if request_row and request_row.customer:
-            return request_row.customer.username
-        return None
 
     profile_url = resolve_url("profile")
     help_support_url = resolve_url("help_support", "about")
@@ -2483,8 +2487,106 @@ def notifications():
         flash("Please log in to continue.", "danger")
         return redirect(url_for("login"))
 
-    notifications_list = Notification.query.filter_by(user_id=user.id).order_by(Notification.created_at.desc()).all()
-    return render_template("notifications.html", notifications=notifications_list)
+    query_text = request.args.get("q", "").strip()
+    status_filter = request.args.get("status", "all")
+    sort_mode = request.args.get("sort", "newest")
+
+    notifications_query = Notification.query.filter_by(user_id=user.id)
+    if query_text:
+        like_term = f"%{query_text}%"
+        notifications_query = notifications_query.filter(
+            or_(
+                Notification.title.ilike(like_term),
+                Notification.message.ilike(like_term),
+            )
+        )
+
+    notifications_list = notifications_query.all()
+
+    def classify_notification(note):
+        text = f"{note.title or ''} {note.message or ''}".lower()
+        if "assigned" in text:
+            return {
+                "key": "assigned",
+                "label": "Assigned",
+                "icon": "track",
+                "tone": "teal",
+            }
+        if "accepted" in text:
+            return {
+                "key": "accepted",
+                "label": "Accepted",
+                "icon": "calendar-check",
+                "tone": "blue",
+            }
+        if "completed" in text:
+            return {
+                "key": "completed",
+                "label": "Completed",
+                "icon": "history",
+                "tone": "green",
+            }
+        if "cancelled" in text or "rejected" in text:
+            return {
+                "key": "alert",
+                "label": "Alert",
+                "icon": "secure",
+                "tone": "red",
+            }
+        if "message" in text:
+            return {
+                "key": "message",
+                "label": "Message",
+                "icon": "chat",
+                "tone": "blue",
+            }
+        return {
+            "key": "update",
+            "label": "Update",
+            "icon": "profile",
+            "tone": "gray",
+        }
+
+    decorated_notifications = []
+    for note in notifications_list:
+        category = classify_notification(note)
+        decorated_notifications.append(
+            {
+                "notification": note,
+                "category": category,
+                "customer_name": request_customer_name(note),
+                "read_label": "Read" if note.is_read else "Unread",
+                "action_label": "Open" if note.is_read else "Mark Read",
+            }
+        )
+
+    if status_filter == "unread":
+        decorated_notifications = [item for item in decorated_notifications if not item["notification"].is_read]
+    elif status_filter == "read":
+        decorated_notifications = [item for item in decorated_notifications if item["notification"].is_read]
+    elif status_filter in {"assigned", "accepted", "completed", "alert", "message", "update"}:
+        decorated_notifications = [item for item in decorated_notifications if item["category"]["key"] == status_filter]
+
+    if sort_mode == "oldest":
+        decorated_notifications.sort(key=lambda item: item["notification"].created_at)
+    else:
+        decorated_notifications.sort(key=lambda item: item["notification"].created_at, reverse=True)
+
+    stats = {
+        "total": len(notifications_list),
+        "unread": len([note for note in notifications_list if not note.is_read]),
+        "read": len([note for note in notifications_list if note.is_read]),
+        "actionable": len([note for note in notifications_list if note.request_id or note.target_url]),
+    }
+
+    return render_template(
+        "notifications.html",
+        notifications=decorated_notifications,
+        stats=stats,
+        query_text=query_text,
+        status_filter=status_filter,
+        sort_mode=sort_mode,
+    )
 
 
 @app.route("/notifications/<int:notification_id>/open", methods=["POST", "GET"])
@@ -2561,6 +2663,20 @@ def mark_as_read(notification_id):
     notification.is_read = True
     db.session.commit()
     flash("Notification marked as read.", "success")
+    return redirect(url_for("notifications"))
+
+
+@app.route("/notifications/read-all", methods=["POST"])
+def mark_all_notifications_read():
+    user = current_user()
+    if not user:
+        return redirect(url_for("login"))
+
+    unread_notifications = Notification.query.filter_by(user_id=user.id, is_read=False).all()
+    for notification in unread_notifications:
+        notification.is_read = True
+    db.session.commit()
+    flash("All notifications marked as read.", "success")
     return redirect(url_for("notifications"))
 
 

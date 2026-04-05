@@ -598,6 +598,30 @@ button:hover,
     border-color: rgba(59, 130, 246, 0.2);
 }
 
+.badge.teal {
+    color: #115e59;
+    background: rgba(45, 212, 191, 0.14);
+    border-color: rgba(45, 212, 191, 0.22);
+}
+
+.badge.blue {
+    color: #1d4ed8;
+    background: rgba(59, 130, 246, 0.14);
+    border-color: rgba(59, 130, 246, 0.2);
+}
+
+.badge.green {
+    color: #166534;
+    background: rgba(22, 163, 74, 0.14);
+    border-color: rgba(22, 163, 74, 0.2);
+}
+
+.badge.red {
+    color: #991b1b;
+    background: rgba(220, 38, 38, 0.14);
+    border-color: rgba(220, 38, 38, 0.2);
+}
+
 .badge.neutral,
 .note-badge.gray {
     color: #334155;
@@ -1116,13 +1140,75 @@ textarea {
     gap: 14px;
 }
 
+.notification-panel {
+    display: grid;
+    gap: 16px;
+}
+
+.notification-head {
+    align-items: center;
+}
+
+.notification-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+    margin-left: auto;
+}
+
+.notification-toolbar input,
+.notification-toolbar select {
+    min-height: 42px;
+    margin: 0;
+}
+
+.notification-search {
+    min-width: min(100%, 280px);
+}
+
+.notification-filter,
+.notification-sort {
+    min-width: 132px;
+}
+
+.notification-chip-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.filter-chip {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 34px;
+    padding: 0 14px;
+    border-radius: 999px;
+    border: 1px solid var(--border);
+    background: #fff;
+    color: var(--ink);
+    font: inherit;
+    font-weight: 700;
+}
+
+.filter-chip.active {
+    background: rgba(29, 158, 117, 0.12);
+    border-color: rgba(29, 158, 117, 0.22);
+    color: var(--teal);
+}
+
+.filter-action {
+    cursor: pointer;
+}
+
 .notification-card {
     position: relative;
     display: flex;
     flex-direction: row;
     align-items: flex-start;
     gap: 14px;
-    padding: 18px;
+    padding: 16px 18px;
     overflow: hidden;
 }
 
@@ -1147,7 +1233,7 @@ textarea {
     flex: 0 0 38px;
     width: 38px;
     height: 38px;
-    border-radius: 16px;
+    border-radius: 12px;
     font-weight: 800;
     color: #fff;
 }
@@ -1162,6 +1248,21 @@ textarea {
 
 .note-icon.gray {
     background: linear-gradient(135deg, #64748b, #94a3b8);
+}
+
+.note-icon.green {
+    background: linear-gradient(135deg, #16a34a, #4ade80);
+}
+
+.note-icon.red {
+    background: linear-gradient(135deg, #dc2626, #f87171);
+}
+
+.note-icon svg {
+    width: 18px;
+    height: 18px;
+    flex: none;
+    fill: currentColor;
 }
 
 .notification-copy {
@@ -1182,17 +1283,34 @@ textarea {
 }
 
 .notification-bottom {
-    margin-top: 12px;
+    margin-top: 14px;
+    align-items: flex-start;
 }
 
 .notification-message {
-    margin: 12px 0 0;
+    margin: 10px 0 0;
+    font-family: "Sora", sans-serif;
+    font-size: 1rem;
+    line-height: 1.25;
+}
+
+.notification-copy-text {
+    margin: 8px 0 0;
+    line-height: 1.6;
+    color: var(--ink);
 }
 
 .notification-actions {
     display: flex;
     align-items: center;
     gap: 10px;
+}
+
+.notification-meta-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
 }
 
 .profile-layout {
@@ -2065,6 +2183,22 @@ textarea {
     .notification-bottom {
         flex-direction: column;
         align-items: flex-start;
+    }
+
+    .notification-toolbar {
+        margin-left: 0;
+        width: 100%;
+    }
+
+    .notification-search,
+    .notification-filter,
+    .notification-sort,
+    .notification-toolbar .btn-primary {
+        width: 100%;
+    }
+
+    .notification-card {
+        padding: 14px 14px 14px 16px;
     }
 
     .table-head {
