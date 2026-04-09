@@ -50,7 +50,8 @@ body {
 
 /* Button styling */
 .form-container button {
-    width: 100%;
+    width: auto;
+    justify-self: end;
     padding: 12px;
     background-color: #5c6bc0;
     color: white;
@@ -64,4 +65,51 @@ body {
 
 .form-container button:hover {
     background-color: #3f51b5;
+}
+
+.form-container .form-row {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 20px;
+}
+
+.form-container .form-group {
+    display: grid;
+    gap: 6px;
+}
+
+.form-container input,
+.form-container select,
+.form-container textarea {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 10px 14px;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    font-size: 14px;
+    color: #111827;
+    font-family: inherit;
+    line-height: normal;
+    text-indent: 0;
+    outline: none;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.form-container input,
+.form-container select {
+    height: 45px;
+}
+
+.form-container input:focus,
+.form-container select:focus,
+.form-container textarea:focus {
+    border-color: #16a085;
+    box-shadow: 0 0 0 3px rgba(22, 160, 133, 0.15);
+}
+
+.form-container textarea {
+    min-height: 100px;
+    resize: vertical;
+    line-height: 1.5;
+    padding: 12px 14px;
 }

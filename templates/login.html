@@ -21,7 +21,7 @@
             {% if errors.form %}
                 <div class="flash flash-danger">{{ errors.form }}</div>
             {% endif %}
-            <form method="POST" enctype="multipart/form-data" class="form-grid">
+            <form method="POST" enctype="multipart/form-data" class="form-container form-grid">
                 <div>
                     <label for="role">Role</label>
                     <select id="role" name="role" class="{% if errors.role %}input-error{% endif %}">
@@ -45,7 +45,7 @@
                     <label for="profile_photo">Profile Photo (optional)</label>
                     <input id="profile_photo" name="profile_photo" type="file" accept="image/*">
                 </div>
-                <div class="span-full">
+                <div class="span-full form-actions">
                     <button type="submit">Login</button>
                 </div>
             </form>

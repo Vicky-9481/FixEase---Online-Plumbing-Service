@@ -12,8 +12,8 @@
     </div>
 </section>
 
-<section class="card form-card reveal">
-    <form method="POST" enctype="multipart/form-data" class="service-form">
+<section class="card form-card reveal request-service-page">
+    <form method="POST" enctype="multipart/form-data" class="form-container service-form">
         <div class="form-grid two-col">
             <div>
                 <label for="issue_type">Issue Type</label>
@@ -40,7 +40,15 @@
             </div>
             <div>
                 <label for="preferred_time">Preferred Time</label>
-                <input id="preferred_time" name="preferred_time" type="text" value="{{ form_data.preferred_time }}" placeholder="10:00 AM - 12:00 PM">
+                <input
+                    id="preferred_time"
+                    name="preferred_time"
+                    type="time"
+                    step="60"
+                    value="{{ form_data.preferred_time }}"
+                    required
+                >
+                {% if errors.preferred_time %}<span class="field-error">{{ errors.preferred_time }}</span>{% endif %}
             </div>
         </div>
 

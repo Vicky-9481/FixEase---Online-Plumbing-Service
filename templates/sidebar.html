@@ -1,11 +1,8 @@
+{% from "_icons.html" import ui_icon, fixease_logo %}
 <aside class="sidebar-shell" data-sidebar-shell>
     <div class="sidebar-brand">
-        <a class="brand-lockup" href="{{ url_for('home') }}">
-            <img src="{{ url_for('static', filename='fixease-logo.svg') }}" alt="FixEase logo" class="brand-mark">
-            <div>
-                <strong>{{ app_name or "FixEase" }}</strong>
-                <span>{{ app_tagline or "Modern Service Marketplace" }}</span>
-            </div>
+        <a class="brand-lockup" href="{{ url_for('home') }}" aria-label="FixEase home">
+            {{ fixease_logo() }}
         </a>
     </div>
 
@@ -32,7 +29,7 @@
         </div>
     {% endif %}
 
-    <nav class="sidebar-nav" aria-label="Sidebar navigation">
+    <nav class="sidebar-nav sidebar-scroll" aria-label="Sidebar navigation" data-sidebar-scroll>
         {% for group in sidebar_groups %}
             <div class="nav-group">
                 <div class="nav-group-title">{{ group.title }}</div>
@@ -40,11 +37,14 @@
                     {% for link in group.links %}
                         <a
                             href="{{ link.url }}"
-                            class="nav-link{% if request.endpoint in link.active_endpoints %} active{% endif %}"
+                            class="nav-link flex items-center px-3 py-2.5{% if request.endpoint in link.active_endpoints %} active{% endif %}"
                         >
-                            <span>{{ link.label }}</span>
+                            <span class="icon-box flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-slate-100 text-slate-600">
+                                {{ ui_icon(link.icon, 16) }}
+                            </span>
+                            <span class="text-sm font-medium">{{ link.label }}</span>
                             {% if link.label == "Notifications" and unread_notifications %}
-                                <span class="pill">{{ unread_notifications }}</span>
+                                <span class="pill ml-auto">{{ unread_notifications }}</span>
                             {% endif %}
                         </a>
                     {% endfor %}

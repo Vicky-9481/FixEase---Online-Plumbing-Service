@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% from "_icons.html" import ui_icon %}
+{% from "_icons.html" import ui_icon, empty_state %}
 
 {% block title %}Customers{% endblock %}
 
@@ -109,7 +109,7 @@
             </table>
         </div>
     {% else %}
-        <div class="empty-state">{{ empty_message }}</div>
+        {{ empty_state(empty_message or "No customer accounts found.", "Try adjusting the search or filters to find more results.", "document", image_urls.tools, "Customer accounts illustration") }}
     {% endif %}
 </section>
 {% endblock %}

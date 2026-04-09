@@ -16,7 +16,7 @@
         {% if errors.form %}
             <div class="flash flash-danger">{{ errors.form }}</div>
         {% endif %}
-        <form method="POST" enctype="multipart/form-data" class="form-grid" data-role-form>
+        <form method="POST" enctype="multipart/form-data" class="form-container form-grid" data-role-form>
             <div>
                 <label for="role">Role</label>
                 <select id="role" name="role" data-role-select>
@@ -114,7 +114,7 @@
                 {% if errors.confirm_password %}<span class="field-error">{{ errors.confirm_password }}</span>{% endif %}
             </div>
 
-            <div class="span-full">
+            <div class="span-full form-actions">
                 <button type="submit">Create Account</button>
             </div>
         </form>

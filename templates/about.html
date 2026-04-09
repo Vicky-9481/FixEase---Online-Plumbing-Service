@@ -30,6 +30,16 @@
     </div>
 </section>
 
+<div class="overflow-hidden rounded-2xl">
+    <img
+        src="{{ image_urls.team }}"
+        alt="FixEase team working together"
+        loading="lazy"
+        class="mb-6 h-48 w-full object-cover rounded-2xl"
+        onerror="this.style.display='none'"
+    >
+</div>
+
 <section class="card section-card reveal">
     <div class="section-head">
         <div>
@@ -40,7 +50,12 @@
     <div class="support-grid">
         {% for role in role_cards %}
             <article class="summary-card">
-                <h3>{{ role.title }}</h3>
+                <div class="mb-4 flex items-center gap-3">
+                    <span class="flex h-11 w-11 items-center justify-center rounded-full bg-{{ role.tone }}-100 text-{{ role.tone }}-600 ring-1 ring-{{ role.tone }}-200">
+                        {{ ui_icon(role.icon, 22) }}
+                    </span>
+                    <h3 class="mb-0">{{ role.title }}</h3>
+                </div>
                 <p>{{ role.description }}</p>
             </article>
         {% endfor %}

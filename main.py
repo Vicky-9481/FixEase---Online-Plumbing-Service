@@ -61,86 +61,110 @@ AVAILABILITY_OPTIONS = [
 HOME_STEPS = [
     {
         "number": "01",
-        "title": "Create Request",
-        "description": "Describe the issue, share your location, and choose a preferred date and time.",
+        "icon": "person",
+        "tone": "blue",
+        "bg": "bg-blue-100 text-blue-600 ring-blue-200",
+        "title": "Register",
+        "description": "Create your account and get ready to book plumbing help in a few taps.",
     },
     {
         "number": "02",
-        "title": "Smart Match",
-        "description": "FixEase finds the right plumber by area, availability, and specialty.",
+        "icon": "document",
+        "tone": "teal",
+        "bg": "bg-teal-100 text-teal-600 ring-teal-200",
+        "title": "Book",
+        "description": "Share the issue, location, and preferred time so the right job can be raised.",
     },
     {
         "number": "03",
-        "title": "Track Progress",
-        "description": "Follow the job from requested to completed with live status updates and messages.",
+        "icon": "wrench",
+        "tone": "amber",
+        "bg": "bg-amber-100 text-amber-600 ring-amber-200",
+        "title": "Assigned",
+        "description": "A verified plumber is matched and the work begins with live updates.",
     },
     {
         "number": "04",
-        "title": "Review & Repeat",
-        "description": "Leave ratings, keep service history, and book again in just a few clicks.",
+        "icon": "star",
+        "tone": "purple",
+        "bg": "bg-purple-100 text-purple-600 ring-purple-200",
+        "title": "Rate",
+        "description": "Finish by rating the visit and saving a clear service history.",
     },
 ]
 HOME_SERVICES = [
     {
-        "icon": "pipe",
-        "title": "Pipe Leakage",
+        "icon": "wrench",
+        "tone": "teal",
+        "title": "Pipe Repair",
         "description": "Fix hidden or visible leaks before they cause water damage and higher bills.",
     },
     {
-        "icon": "tool",
-        "title": "Tap Replacement",
+        "icon": "document",
+        "tone": "blue",
+        "title": "Taps & Faucets",
         "description": "Replace worn taps and fixtures with neat, long-lasting professional fitting.",
     },
     {
-        "icon": "drain",
-        "title": "Drain Unblocking",
+        "icon": "check-circle",
+        "tone": "amber",
+        "title": "Drain Cleaning",
         "description": "Clear clogged drains and restore smooth water flow in kitchens and bathrooms.",
     },
     {
-        "icon": "tank",
-        "title": "Water Heater",
+        "icon": "currency-rupee",
+        "tone": "red",
+        "title": "Water Heaters",
         "description": "Repair, service, or replace heaters for safe and reliable hot water supply.",
     },
     {
-        "icon": "bath",
-        "title": "Bathroom Plumbing",
+        "icon": "shield",
+        "tone": "purple",
+        "title": "Bathroom Fitting",
         "description": "Handle bathroom fittings, flush systems, and everyday plumbing installations.",
     },
     {
-        "icon": "bolt",
+        "icon": "emergency-bell",
+        "tone": "orange",
         "title": "Emergency Plumbing",
         "description": "Get fast response support for urgent leaks, burst pipes, and emergency repairs.",
     },
 ]
 HOME_FEATURES = [
     {
-        "icon": "secure",
-        "title": "Verified Professionals",
+        "icon": "shield",
+        "tone": "green",
+        "title": "Verified Plumbers",
         "description": "Only plumbers who pass profile verification appear in the marketplace.",
     },
     {
-        "icon": "track",
-        "title": "Live Tracking",
+        "icon": "play",
+        "tone": "blue",
+        "title": "Real-time Tracking",
         "description": "See every request progress from assignment through completion in real time.",
     },
     {
-        "icon": "price",
+        "icon": "currency-rupee",
+        "tone": "amber",
         "title": "Transparent Pricing",
         "description": "Understand the visit charge before you confirm a booking or assignment.",
     },
     {
         "icon": "chat",
-        "title": "Messaging",
+        "tone": "teal",
+        "title": "In-app Messaging",
         "description": "Keep request-specific conversations attached to the right job.",
     },
     {
         "icon": "star",
-        "title": "Ratings",
+        "tone": "purple",
+        "title": "Ratings & Reviews",
         "description": "Use feedback and ratings to select trusted plumbers with confidence.",
     },
     {
-        "icon": "history",
-        "title": "Service History",
+        "icon": "document",
+        "tone": "slate",
+        "title": "Job History",
         "description": "All completed work stays available for future reference and repeat bookings.",
     },
 ]
@@ -626,10 +650,36 @@ def inject_common_data():
 
     def nav_link(label, endpoint, *fallbacks, **values):
         endpoints = [endpoint, *fallbacks]
+        icon_map = {
+            "Home": "location",
+            "Dashboard": "document",
+            "About": "shield",
+            "Create Request": "document",
+            "My Requests": "document",
+            "Service History": "history",
+            "Notifications": "chat",
+            "Profile": "person",
+            "Help & Support": "emergency-bell",
+            "Available Requests": "wrench",
+            "Accepted Jobs": "check-circle",
+            "Completed Jobs": "check-circle",
+            "Update Availability": "play",
+            "Service Areas": "location",
+            "Ratings": "star",
+            "Customers": "person",
+            "Plumbers": "wrench",
+            "Pending Plumbers": "shield",
+            "All Requests": "document",
+            "Analytics": "track",
+            "Job Monitoring": "spinner",
+            "Reports": "document",
+            "Overview": "person",
+        }
         return {
             "label": label,
             "url": resolve_url(*endpoints, **values),
             "active_endpoints": endpoints,
+            "icon": icon_map.get(label, "document"),
         }
 
     sidebar_groups = []
@@ -789,6 +839,19 @@ def inject_common_data():
         "plumber_profile": "Plumber Profile",
     }
 
+    image_urls = {
+        "hero_bg": "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?auto=format&fit=crop&w=1200&q=80",
+        "pipe_repair": "https://images.unsplash.com/photo-1504328345606-18bbc8c9d7d1?auto=format&fit=crop&w=400&q=80",
+        "tap_faucet": "https://images.unsplash.com/photo-1585771724684-38269d6639fd?auto=format&fit=crop&w=400&q=80",
+        "drain": "https://images.unsplash.com/photo-1585771724684-38269d6639fd?auto=format&fit=crop&w=400&q=80",
+        "water_heater": "https://images.unsplash.com/photo-1581090464777-f3220bbe1b8b?auto=format&fit=crop&w=400&q=80",
+        "bathroom": "https://images.unsplash.com/photo-1552321554-5fefe8c9ef14?auto=format&fit=crop&w=400&q=80",
+        "emergency": "https://images.unsplash.com/photo-1504328345606-18bbc8c9d7d1?auto=format&fit=crop&w=400&q=80",
+        "plumber_at_work": "https://images.unsplash.com/photo-1621905251189-08b45d6a269e?auto=format&fit=crop&w=600&q=80",
+        "tools": "https://images.unsplash.com/photo-1567427017947-545c5f8d16ad?auto=format&fit=crop&w=600&q=80",
+        "team": "https://images.unsplash.com/photo-1600880292203-757bb62b4baf?auto=format&fit=crop&w=1000&q=80",
+    }
+
     if current_endpoint == "dashboard_router" and user:
         page_title = "Dashboard"
     else:
@@ -822,19 +885,26 @@ def inject_common_data():
         "active_endpoint": current_endpoint,
         "topbar_search_value": request.args.get("search", "") if current_endpoint == "view_plumbers" else "",
         "today": date.today(),
+        "image_urls": image_urls,
     }
 
 
 @app.route("/")
 @app.route("/home")
 def home():
+    active_plumbers = Plumber.query.filter_by(is_active=True).all()
+    completed_jobs = ServiceRequest.query.filter_by(status="completed").count()
+    active_requests = ServiceRequest.query.filter(
+        ServiceRequest.status.in_(["requested", "accepted", "in_progress"])
+    ).count()
+    ratings = [plumber.average_rating for plumber in active_plumbers if plumber.average_rating is not None]
     marketplace_stats = {
         "customers": User.query.filter_by(role="customer").count(),
-        "plumbers": Plumber.query.filter_by(is_active=True).count(),
-        "completed_jobs": ServiceRequest.query.filter_by(status="completed").count(),
-        "active_requests": ServiceRequest.query.filter(
-            ServiceRequest.status.in_(["requested", "accepted", "in_progress"])
-        ).count(),
+        "plumbers": len(active_plumbers),
+        "completed_jobs": completed_jobs,
+        "active_requests": active_requests,
+        "cities_covered": len({plumber.service_area.strip().lower() for plumber in active_plumbers if plumber.service_area}),
+        "avg_rating": round(sum(ratings) / len(ratings), 1) if ratings else 4.8,
     }
     return render_template(
         "index.html",
@@ -866,14 +936,20 @@ def about():
     ]
     role_cards = [
         {
+            "icon": "shield",
+            "tone": "slate",
             "title": "Admin",
             "description": "Manage users, verify plumbers, monitor activity, and keep the platform healthy.",
         },
         {
+            "icon": "person",
+            "tone": "blue",
             "title": "Customer",
             "description": "Book plumbing help, track requests, receive updates, and leave feedback.",
         },
         {
+            "icon": "wrench",
+            "tone": "amber",
             "title": "Plumber",
             "description": "Accept work, update job progress, manage availability, and build a reputation.",
         },
@@ -1178,6 +1254,22 @@ def view_plumbers():
         query = query.having(db.func.coalesce(db.func.avg(Feedback.rating), 0) >= float(rating_filter))
 
     plumbers = query.order_by(Plumber.years_of_experience.desc()).all()
+    avatar_tones = ["teal", "blue", "amber", "purple", "emerald", "rose", "cyan", "orange", "indigo", "slate"]
+    plumber_cards = []
+    for index, plumber in enumerate(plumbers):
+        plumber_cards.append(
+            {
+                "id": plumber.id,
+                "name": plumber.name,
+                "specialties": plumber.specialties,
+                "service_area": plumber.service_area,
+                "years_of_experience": plumber.years_of_experience,
+                "charges": plumber.charges,
+                "average_rating": plumber.average_rating,
+                "availability_status": plumber.availability_status,
+                "theme": avatar_tones[index % len(avatar_tones)],
+            }
+        )
     filters = {
         "search": search_filter,
         "experience": experience_filter or "",
@@ -1186,7 +1278,7 @@ def view_plumbers():
         "specialty": specialty_filter,
         "rating": rating_filter,
     }
-    return render_template("view_plumbers.html", plumbers=plumbers, filters=filters)
+    return render_template("view_plumbers.html", plumbers=plumber_cards, filters=filters)
 
 
 @app.route("/plumbers/<int:plumber_id>")
@@ -1215,6 +1307,7 @@ def request_service():
     selected_plumber_id = request.args.get("plumber_id", type=int)
 
     if request.method == "POST":
+        errors = {}
         issue_type = request.form["issue_type"]
         description = request.form["description"].strip()
         location = request.form["location"].strip()
@@ -1223,6 +1316,33 @@ def request_service():
         selected_plumber_id = request.form.get("plumber_id", type=int)
         problem_image_file = request.files.get("problem_image")
         from services.booking_service import create_service_request
+
+        if not preferred_time:
+            errors["preferred_time"] = "Preferred time is required."
+        else:
+            try:
+                datetime.strptime(preferred_time, "%H:%M")
+            except ValueError:
+                errors["preferred_time"] = "Please choose a valid time."
+
+        form_data = {
+            "issue_type": issue_type,
+            "description": description,
+            "location": location,
+            "preferred_date": preferred_date or "",
+            "preferred_time": preferred_time or "",
+            "plumber_id": selected_plumber_id or "",
+        }
+
+        if errors:
+            return render_template(
+                "request_service.html",
+                plumbers=plumbers,
+                issue_types=ISSUE_TYPES,
+                selected_plumber_id=selected_plumber_id,
+                form_data=form_data,
+                errors=errors,
+            )
 
         problem_image_path = None
         if problem_image_file and problem_image_file.filename:
@@ -1235,15 +1355,8 @@ def request_service():
                     plumbers=plumbers,
                     issue_types=ISSUE_TYPES,
                     selected_plumber_id=selected_plumber_id,
-                    form_data={
-                        "issue_type": issue_type,
-                        "description": description,
-                        "location": location,
-                        "preferred_date": preferred_date or "",
-                        "preferred_time": preferred_time or "",
-                        "plumber_id": selected_plumber_id or "",
-                    },
-                    errors={},
+                    form_data=form_data,
+                    errors=errors,
                 )
 
         service_request = create_service_request(
@@ -1266,6 +1379,8 @@ def request_service():
         plumbers=plumbers,
         issue_types=ISSUE_TYPES,
         selected_plumber_id=selected_plumber_id,
+        form_data=EMPTY_FORM_DATA.copy(),
+        errors={},
     )
 
 

@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% from "_icons.html" import ui_icon %}
+{% from "_icons.html" import ui_icon, empty_state %}
 
 {% block title %}Customer Dashboard{% endblock %}
 
@@ -31,21 +31,33 @@
 </section>
 
 <section class="stats-grid grid-4 reveal">
-    <article class="stat-card">
+    <article class="stat-card relative overflow-hidden">
         <span class="stat-label">Total Requests</span>
         <strong>{{ stats.total_requests }}</strong>
+        <span class="absolute right-4 top-4 flex h-10 w-10 items-center justify-center rounded-2xl bg-blue-100 text-blue-600">
+            {{ ui_icon("document", 20) }}
+        </span>
     </article>
-    <article class="stat-card">
+    <article class="stat-card relative overflow-hidden">
         <span class="stat-label">Active Requests</span>
         <strong>{{ stats.active_requests }}</strong>
+        <span class="absolute right-4 top-4 flex h-10 w-10 items-center justify-center rounded-2xl bg-amber-100 text-amber-600">
+            {{ ui_icon("spinner", 20, class_="animate-spin") }}
+        </span>
     </article>
-    <article class="stat-card">
+    <article class="stat-card relative overflow-hidden">
         <span class="stat-label">Completed</span>
         <strong>{{ stats.completed_requests }}</strong>
+        <span class="absolute right-4 top-4 flex h-10 w-10 items-center justify-center rounded-2xl bg-emerald-100 text-emerald-600">
+            {{ ui_icon("check-circle", 20) }}
+        </span>
     </article>
-    <article class="stat-card">
+    <article class="stat-card relative overflow-hidden">
         <span class="stat-label">Feedback Pending</span>
         <strong>{{ stats.feedback_pending }}</strong>
+        <span class="absolute right-4 top-4 flex h-10 w-10 items-center justify-center rounded-2xl bg-purple-100 text-purple-600">
+            {{ ui_icon("star", 20) }}
+        </span>
     </article>
 </section>
 
@@ -61,8 +73,18 @@
         <div class="notification-stack">
             {% for note in notifications %}
                 <div class="mini-notification {% if not note.is_read %}unread{% endif %}">
-                    <span class="note-badge {% if 'accepted' in note.message|lower %}blue{% elif 'assigned' in note.message|lower %}teal{% else %}gray{% endif %}">
-                        {% if 'accepted' in note.message|lower %}Accepted{% elif 'assigned' in note.message|lower %}Assigned{% else %}Update{% endif %}
+                    <span class="note-badge flex h-7 w-7 items-center justify-center rounded-lg {% if 'accepted' in note.message|lower %}bg-blue-100 text-blue-600{% elif 'assigned' in note.message|lower %}bg-teal-100 text-teal-600{% elif 'completed' in note.message|lower %}bg-emerald-100 text-emerald-600{% elif 'message' in note.message|lower %}bg-purple-100 text-purple-600{% else %}bg-amber-100 text-amber-600{% endif %}">
+                        {% if 'accepted' in note.message|lower %}
+                            {{ ui_icon("check-circle", 16) }}
+                        {% elif 'assigned' in note.message|lower %}
+                            {{ ui_icon("wrench", 16) }}
+                        {% elif 'completed' in note.message|lower %}
+                            {{ ui_icon("document", 16) }}
+                        {% elif 'message' in note.message|lower %}
+                            {{ ui_icon("chat", 16) }}
+                        {% else %}
+                            {{ ui_icon("emergency-bell", 16) }}
+                        {% endif %}
                     </span>
                     <div class="note-body">
                         <strong>{{ note.title or "Notification" }}</strong>
@@ -71,7 +93,7 @@
                     </div>
                 </div>
             {% else %}
-                <div class="empty-state">No notifications yet.</div>
+                {{ empty_state("No notifications yet.", "Activity from your requests and conversations will appear here.", "chat", image_urls.tools, "Notifications illustration") }}
             {% endfor %}
         </div>
     </article>

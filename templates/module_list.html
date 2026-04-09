@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% from "_icons.html" import empty_state %}
 
 {% block title %}{{ module_title }}{% endblock %}
 
@@ -63,7 +64,13 @@
             {% endfor %}
         </div>
     {% else %}
-        <div class="empty-state">{{ empty_message or "No records available." }}</div>
+        {{ empty_state(
+            empty_message or "No records available.",
+            "New items will appear here once they are available.",
+            "document",
+            image_urls.tools,
+            module_title ~ " illustration"
+        ) }}
     {% endif %}
 </section>
 {% endblock %}

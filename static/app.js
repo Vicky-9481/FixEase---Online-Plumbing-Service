@@ -1,8 +1,20 @@
 const sidebarToggle = document.querySelector("[data-sidebar-toggle]");
+const sidebarScrollKey = "fixease.sidebar.scrollTop";
+let sidebarScrollTop = Number(sessionStorage.getItem(sidebarScrollKey) || 0);
 
 if (sidebarToggle) {
   sidebarToggle.addEventListener("click", () => {
     document.body.classList.toggle("sidebar-open");
+  });
+}
+
+const sidebarScrollArea = document.querySelector("[data-sidebar-scroll]");
+
+if (sidebarScrollArea) {
+  sidebarScrollArea.scrollTop = sidebarScrollTop;
+  sidebarScrollArea.addEventListener("scroll", () => {
+    sidebarScrollTop = sidebarScrollArea.scrollTop;
+    sessionStorage.setItem(sidebarScrollKey, String(sidebarScrollTop));
   });
 }
 

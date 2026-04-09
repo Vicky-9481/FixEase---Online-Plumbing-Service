@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% from "_icons.html" import ui_icon %}
+{% from "_icons.html" import ui_icon, empty_state %}
 
 {% block title %}Notifications{% endblock %}
 
@@ -82,8 +82,8 @@
                 {% set category = item.category %}
                 <article class="notification-card {% if not note.is_read %}unread{% endif %}">
                     <div class="note-border"></div>
-                    <div class="note-icon {{ category.tone }}">
-                        {{ ui_icon(category.icon) }}
+                    <div class="note-icon flex h-7 w-7 items-center justify-center rounded-xl bg-{{ category.tone }}-100 text-{{ category.tone }}-600">
+                        {{ ui_icon(category.icon, 16) }}
                     </div>
                     <div class="notification-content">
                         <div class="notification-top">
@@ -109,10 +109,13 @@
             {% endfor %}
         </div>
     {% else %}
-        <div class="empty-state">
-            <strong>No notifications match this view.</strong>
-            <p class="muted">Try clearing filters or checking a different category.</p>
-        </div>
+        {{ empty_state(
+            "No notifications match this view.",
+            "Try clearing filters or checking a different category.",
+            "chat",
+            image_urls.tools,
+            "Notifications illustration"
+        ) }}
     {% endif %}
 </section>
 {% endblock %}

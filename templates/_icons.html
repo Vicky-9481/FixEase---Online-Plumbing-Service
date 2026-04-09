@@ -1,47 +1,196 @@
-{% macro ui_icon(name) -%}
-<svg viewBox="0 0 24 24" aria-hidden="true">
-    {% if name == "drop" %}
-        <path d="M12 2s6 7 6 12a6 6 0 1 1-12 0c0-5 6-12 6-12Zm0 4.7C9.8 9.5 8 12.1 8 14.5a4 4 0 0 0 8 0c0-2.4-1.8-5-4-7.8Z"/>
-    {% elif name == "pipe" %}
-        <path d="M4 10a2 2 0 0 1 2-2h5v3H8v5h3v3H6a2 2 0 0 1-2-2v-7Zm9-2h7v3h-2v5h2v3h-7v-3h2v-5h-2V8Z"/>
-    {% elif name == "bath" %}
-        <path d="M7 6V4h3v2h4V4h3v2a4 4 0 0 1 4 4v2H3v-2a4 4 0 0 1 4-4Zm14 8v3a5 5 0 0 1-5 5H8a5 5 0 0 1-5-5v-3h18Z"/>
-    {% elif name == "tank" %}
-        <path d="M7 5a3 3 0 0 1 3-3h4a3 3 0 0 1 3 3v1h2v4H5V6h2V5Zm-2 7h14v7a3 3 0 0 1-3 3H8a3 3 0 0 1-3-3v-7Z"/>
-    {% elif name == "drain" %}
-        <path d="M4 6h16v3H4V6Zm2 5h12l-1 7H7l-1-7Zm2-9h8v2H8V2Zm1 15h6v2H9v-2Z"/>
-    {% elif name == "bolt" %}
-        <path d="M13 2 5 13h6l-1 9 9-12h-6l0-8Z"/>
+{% macro fixease_logo() -%}
+<div class="fixease-logo" aria-label="FixEase">
+    <svg
+        class="fixease-logo-mark"
+        width="60"
+        height="60"
+        viewBox="0 0 60 60"
+        aria-hidden="true"
+        focusable="false"
+    >
+        <rect x="0" y="0" width="60" height="60" rx="14" fill="#16a34a" />
+        <rect x="14" y="14" width="28" height="6" rx="2" fill="#ffffff" />
+        <rect x="14" y="24" width="20" height="6" rx="2" fill="#ffffff" />
+        <rect x="14" y="34" width="6" height="18" rx="2" fill="#ffffff" />
+        <circle cx="48" cy="48" r="10" fill="#0f4c2a" />
+    </svg>
+    <div class="fixease-logo-copy">
+        <div class="fixease-logo-wordmark">
+            <span class="fixease-logo-fix">fix</span><span class="fixease-logo-ease">ease</span>
+        </div>
+        <div class="fixease-logo-subtitle">SERVICE MARKETPLACE</div>
+        <div class="fixease-logo-dots" aria-hidden="true">
+            <span class="fixease-logo-dot">●</span>
+            <span class="fixease-logo-dot">●</span>
+            <span class="fixease-logo-dot">●</span>
+        </div>
+        <div class="fixease-logo-tagline">Fast · Trusted · Professional</div>
+    </div>
+</div>
+{%- endmacro %}
+
+{% macro ui_icon(name, size=24, color="currentColor", class_="") -%}
+<svg
+    width="{{ size }}"
+    height="{{ size }}"
+    viewBox="0 0 24 24"
+    aria-hidden="true"
+    focusable="false"
+    fill="none"
+    stroke="currentColor"
+    stroke-width="1.9"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+    style="color: {{ color }}"
+    class="{{ class_ }}"
+>
+    {% if name in ["person", "profile", "user"] %}
+        <circle cx="12" cy="8" r="4" />
+        <path d="M4 20c1.8-4 5-6 8-6s6.2 2 8 6" />
     {% elif name == "user-plus" %}
-        <path d="M12 12a4 4 0 1 0-4-4 4 4 0 0 0 4 4Zm-8 9a8 8 0 0 1 16 0v1H4v-1Zm17-10V8h-2V6h-2v2h-2v3h2v2h2v-2h2Z"/>
-    {% elif name == "calendar-check" %}
-        <path d="M7 3h2v2h6V3h2v2h3a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h3V3Zm9 8-4.5 4.5L9 13l-1.5 1.5L12 19l6-6-2-2Z"/>
-    {% elif name == "tool" %}
-        <path d="M20.7 7.3a5 5 0 0 1-6.6 6.6L7.4 21 3 16.6l7.1-6.7A5 5 0 0 1 16.7 3l-3.2 3.2 1.3 1.3L18 4.3l2.7 3Z"/>
-    {% elif name == "star" %}
-        <path d="m12 2.6 2.9 5.9 6.5.9-4.7 4.5 1.1 6.4-5.8-3.1-5.8 3.1 1.1-6.4-4.7-4.5 6.5-.9L12 2.6Z"/>
-    {% elif name == "track" %}
-        <path d="M4 6h16v3H4V6Zm0 9h16v3H4v-3Zm0-4.5h10v3H4v-3Z"/>
-    {% elif name == "price" %}
-        <path d="M12 2a7 7 0 0 0 0 14 5 5 0 0 1 0 10h-1v-2h1a3 3 0 0 0 0-6 7 7 0 0 1 0-14h1V2h-1Zm-1 4v2h2a1 1 0 0 1 0 2h-1a3 3 0 0 0 0 6h1v2h-2v2h-2v-2h-1v-2h1a1 1 0 0 1 0-2h1a3 3 0 0 0 0-6h-1V6h2Z"/>
-    {% elif name == "secure" %}
-        <path d="M12 2 4 5v6c0 5 3.4 9.7 8 11 4.6-1.3 8-6 8-11V5l-8-3Zm0 6a3 3 0 0 1 1 5.8V16h-2v-2.2A3 3 0 0 1 12 8Z"/>
-    {% elif name == "history" %}
-        <path d="M12 2a10 10 0 1 0 10 10h-3a7 7 0 1 1-2.1-5L14 11h8V3l-3 3A9.96 9.96 0 0 0 12 2Zm-1 5h2v6l5 3-.9 1.8-6.1-3.5V7Z"/>
-    {% elif name == "location" %}
-        <path d="M12 2a7 7 0 0 0-7 7c0 5.2 7 13 7 13s7-7.8 7-13a7 7 0 0 0-7-7Zm0 9.5A2.5 2.5 0 1 1 12 6a2.5 2.5 0 0 1 0 5.5Z"/>
+        <circle cx="10" cy="8" r="4" />
+        <path d="M3 20c1.5-3.6 4.4-5.5 7-5.5s5.5 1.9 7 5.5" />
+        <path d="M18 8v6" />
+        <path d="M15 11h6" />
+    {% elif name in ["document", "calendar-check", "history"] %}
+        <path d="M7 3h7l4 4v14H7z" />
+        <path d="M14 3v5h5" />
+        <path d="M9 11h6" />
+        <path d="M9 15h6" />
+    {% elif name in ["wrench", "tool", "assign"] %}
+        <path d="M14.5 6.5a4 4 0 0 1-5.7 5.7L3 18l3 3 5.8-5.8a4 4 0 0 0 5.7-5.7l-2 2-2.6-2.6 2-2Z" />
+    {% elif name in ["star", "ratings"] %}
+        <path d="m12 3 2.6 5.3 5.9.9-4.3 4.1 1 5.9-5.2-2.7-5.2 2.7 1-5.9-4.3-4.1 5.9-.9L12 3Z" />
+    {% elif name in ["shield", "secure"] %}
+        <path d="M12 3 5 6v5c0 4.8 3 8.9 7 10 4-1.1 7-5.2 7-10V6l-7-3Z" />
+        <path d="m9.5 12 1.9 1.9 3.8-4" />
+    {% elif name == "play" %}
+        <circle cx="12" cy="12" r="9" />
+        <path d="m10 8 6 4-6 4V8Z" fill="currentColor" stroke="none" />
+    {% elif name in ["currency-rupee", "price", "charge"] %}
+        <path d="M7 4h11M7 8h8.5A3.5 3.5 0 0 1 12 13H7l7 7" />
+        <path d="M7 12h6" />
+    {% elif name in ["chat", "message"] %}
+        <path d="M4 5h16v10H10l-4 4v-4H4z" />
+        <path d="M8 9h8" />
+        <path d="M8 12h5" />
+    {% elif name in ["check-circle", "completed"] %}
+        <circle cx="12" cy="12" r="9" />
+        <path d="m8.5 12.2 2.6 2.6L16 9.9" />
+    {% elif name == "spinner" %}
+        <path d="M21 12a9 9 0 1 1-4.7-7.9" />
+    {% elif name in ["padlock", "lock"] %}
+        <rect x="6.5" y="11" width="11" height="9" rx="2" />
+        <path d="M8.5 11V8.5a3.5 3.5 0 0 1 7 0V11" />
+    {% elif name in ["location", "pin"] %}
+        <path d="M12 21s6-6 6-11a6 6 0 0 0-12 0c0 5 6 11 6 11Z" />
+        <circle cx="12" cy="10" r="2.5" />
+    {% elif name in ["emergency-bell", "alert", "bolt"] %}
+        <path d="M9 18h6" />
+        <path d="M7 17v-5a5 5 0 1 1 10 0v5l2 2H5l2-2Z" />
+        <path d="M12 6v4" />
+        <path d="m11 13 2-3h-1l1-2" />
+    {% elif name in ["track", "route"] %}
+        <path d="M4 6h16M4 12h10M4 18h16" />
     {% elif name == "specialty" %}
-        <path d="M4 12h16v3H4v-3Zm2-5h12v3H6V7Zm2 10h8v3H8v-3Z"/>
-    {% elif name == "charge" %}
-        <path d="M12 3a8 8 0 1 0 8 8 8 8 0 0 0-8-8Zm1 4v1.1A4 4 0 0 1 16 12h-2a2 2 0 0 0-1-1.7V14h.3a4 4 0 0 1 .7 7.9V23h-2v-1.1A4 4 0 0 1 8 18h2a2 2 0 0 0 1 1.7V14h-.3A4 4 0 0 1 10 6.1V5h2v1.1a4 4 0 0 1 1 0Z"/>
-    {% elif name == "profile" %}
-        <path d="M12 2a6 6 0 1 0 6 6 6 6 0 0 0-6-6Zm0 14c-4.4 0-8 2.9-8 6.5V22h16v-.5c0-3.6-3.6-6.5-8-6.5Z"/>
-    {% elif name == "assign" %}
-        <path d="M4 4h10v3H4V4Zm0 6h16v3H4v-3Zm0 6h10v3H4v-3Zm12.5-6.5 1.9-1.9 2.6 2.6 3.5-3.5 1.5 1.5-5 5-4.5-4.5Z"/>
-    {% elif name == "chat" %}
-        <path d="M4 4h16a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H10l-4.5 3.5V17H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2Zm4 5h8v2H8V9Zm0 3h5v2H8v-2Z"/>
+        <path d="M5 7h14M5 12h10M5 17h12" />
+    {% elif name == "quote" %}
+        <path d="M7 9a3 3 0 0 1 3-3v4H8a1 1 0 0 0-1 1v5h4v-5a6 6 0 0 0-4-5.7V6" />
+        <path d="M14 9a3 3 0 0 1 3-3v4h-2a1 1 0 0 0-1 1v5h4v-5a6 6 0 0 0-4-5.7V6" />
     {% else %}
-        <path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2Z"/>
+        <circle cx="12" cy="12" r="9" />
     {% endif %}
 </svg>
+{%- endmacro %}
+
+{% macro plumber_illustration(size=320) -%}
+<svg
+    width="{{ size }}"
+    height="{{ size }}"
+    viewBox="0 0 360 320"
+    role="img"
+    aria-label="Plumber illustration"
+    class="h-full w-full"
+>
+    <defs>
+        <linearGradient id="plumber-bg" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" class="stop-amber-100" />
+            <stop offset="100%" class="stop-orange-100" />
+        </linearGradient>
+        <linearGradient id="plumber-shirt" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" class="stop-amber-500" />
+            <stop offset="100%" class="stop-orange-600" />
+        </linearGradient>
+    </defs>
+    <rect x="12" y="18" width="336" height="284" rx="36" class="fill-amber-50 stroke-amber-100" stroke-width="2" />
+    <circle cx="282" cy="78" r="30" class="fill-orange-100" />
+    <circle cx="90" cy="246" r="46" class="fill-amber-100" />
+    <path d="M72 220h54l-8 62H64l8-62Z" class="fill-orange-100" />
+    <path d="M148 66c22-18 49-22 72-12 20 9 34 27 34 50v88c0 12-10 22-22 22h-84c-12 0-22-10-22-22v-70c0-23 9-40 22-56Z" class="fill-amber-500" />
+    <path d="M153 74c15-13 33-17 50-11 15 5 25 17 25 31 0 8-3 15-8 21-5 5-12 8-20 8h-32c-8 0-15-3-20-8-5-6-8-13-8-21 0-8 4-15 13-20Z" class="fill-orange-500" />
+    <path d="M159 68c8-10 18-16 28-16 11 0 20 4 28 13l-9 10h-39l-8-7Z" class="fill-amber-100" />
+    <path d="M160 133h56" class="stroke-amber-200" />
+    <path d="M166 156h44" class="stroke-amber-200" />
+    <path d="M168 178h40" class="stroke-amber-200" />
+    <path d="M120 208c7-25 27-38 60-38h26c31 0 53 16 63 47l14 40H109l11-49Z" class="fill-orange-50" />
+    <path d="M108 211h144l8 53H98l10-53Z" class="fill-amber-50 stroke-orange-200" stroke-width="2" />
+    <rect x="120" y="222" width="20" height="34" rx="6" class="fill-orange-300" />
+    <rect x="145" y="220" width="22" height="36" rx="6" class="fill-amber-300" />
+    <rect x="172" y="224" width="18" height="32" rx="6" class="fill-orange-200" />
+    <rect x="195" y="221" width="21" height="35" rx="6" class="fill-amber-200" />
+    <rect x="219" y="223" width="18" height="33" rx="6" class="fill-orange-300" />
+    <path d="M115 143c-9 20-10 38-6 57 4 18 3 33-2 45" class="stroke-orange-700" stroke-width="8" stroke-linecap="round" />
+    <path d="M242 146c15 21 21 41 18 60-2 11 1 26 8 45" class="stroke-orange-700" stroke-width="8" stroke-linecap="round" />
+    <path d="M78 166c-4 30-2 54 7 70" class="stroke-amber-700" stroke-width="10" stroke-linecap="round" />
+    <path d="M256 160c14 29 16 54 8 77" class="stroke-amber-700" stroke-width="10" stroke-linecap="round" />
+    <path d="M251 104c13 11 20 25 20 42" class="stroke-orange-600" stroke-width="8" stroke-linecap="round" />
+    <circle cx="257" cy="150" r="12" class="fill-amber-300 stroke-orange-700" stroke-width="2" />
+    <path d="M269 158l23 10" class="stroke-orange-700" stroke-width="7" stroke-linecap="round" />
+    <path d="M290 169h27" class="stroke-orange-700" stroke-width="7" stroke-linecap="round" />
+    <path d="M305 162l12 7-12 7" class="stroke-orange-700" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" />
+    <path d="M34 258h292" class="stroke-orange-200" stroke-width="2" />
+    <path d="M34 266h292" class="stroke-amber-100" stroke-width="2" />
+</svg>
+{%- endmacro %}
+
+{% macro plumber_avatar(theme="teal", size=88) -%}
+<svg
+    width="{{ size }}"
+    height="{{ size }}"
+    viewBox="0 0 88 88"
+    role="img"
+    aria-label="Plumber avatar"
+    class="h-full w-full"
+>
+    <circle cx="44" cy="44" r="42" class="fill-{{ theme }}-100" />
+    <circle cx="44" cy="39" r="15" class="fill-{{ theme }}-600" />
+    <path d="M26 71c4-14 13-21 18-21s14 7 18 21" class="fill-{{ theme }}-700" />
+    <path d="M33 34c2-7 6-11 11-11 4 0 8 2 12 7l-3 3H37l-4 1Z" class="fill-amber-200" />
+    <path d="M31 73c4-7 7-10 13-10s9 3 13 10" class="stroke-{{ theme }}-700" stroke-width="6" stroke-linecap="round" />
+    <path d="M54 48l11 8-4 5-11-8 4-5Z" class="fill-{{ theme }}-500" />
+    <path d="M60 55l8-12 5 4-8 12-5-4Z" class="fill-amber-400" />
+</svg>
+{%- endmacro %}
+
+{% macro empty_state(title, subtitle=None, icon="document", image_url=None, image_alt="Plumbing illustration") -%}
+<div class="flex flex-col items-center justify-center py-16 gap-3 text-center">
+    {% if image_url %}
+        <div class="overflow-hidden rounded-xl">
+            <img
+                src="{{ image_url }}"
+                alt="{{ image_alt }}"
+                loading="lazy"
+                class="mx-auto mb-3 h-24 w-24 object-cover opacity-30"
+                onerror="this.style.display='none'"
+            >
+        </div>
+    {% endif %}
+    <span class="flex h-12 w-12 items-center justify-center rounded-2xl bg-gray-100 text-gray-300">
+        {{ ui_icon(icon, 24, "currentColor") }}
+    </span>
+    <p class="text-sm font-medium text-gray-400">{{ title }}</p>
+    {% if subtitle %}
+        <p class="text-xs text-gray-300">{{ subtitle }}</p>
+    {% endif %}
+</div>
 {%- endmacro %}

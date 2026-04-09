@@ -21,13 +21,14 @@
     <div class="topbar-actions">
         {% if current_user_data %}
             <a class="icon-button bell-button" href="{{ notifications_url }}" aria-label="Notifications">
-                <svg viewBox="0 0 24 24" aria-hidden="true">
+                <span class="bell-wrap">
+                <svg viewBox="0 0 24 24" aria-hidden="true" class="bell-icon">
                     <path d="M12 22a2.2 2.2 0 0 0 2.15-2h-4.3A2.2 2.2 0 0 0 12 22Zm7-6V11a7 7 0 0 0-5-6.72V4a2 2 0 0 0-4 0v.28A7 7 0 0 0 5 11v5l-2 2v1h18v-1l-2-2Z"/>
                 </svg>
                 {% if unread_notifications %}
-                    <span class="badge-dot"></span>
-                    <span class="pill">{{ unread_notifications }}</span>
+                    <span class="notification-badge">{{ unread_notifications }}</span>
                 {% endif %}
+                </span>
             </a>
         {% endif %}
         <a class="btn-primary topbar-book" href="{{ url_for('request_service') }}">Book Service</a>

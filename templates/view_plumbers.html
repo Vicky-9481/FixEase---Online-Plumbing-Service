@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% from "_icons.html" import ui_icon %}
+{% from "_icons.html" import ui_icon, plumber_avatar, empty_state %}
 
 {% block title %}Plumbers{% endblock %}
 
@@ -37,32 +37,60 @@
     </form>
 </section>
 
-<section class="plumber-grid plumbers-grid reveal">
+    <section class="plumber-grid plumbers-grid reveal">
     {% for plumber in plumbers %}
-        <article class="plumber-card marketplace-card">
-            <div class="plumber-top">
-                <div class="avatar-square">{{ plumber.name[:2].upper() }}</div>
-                <span class="badge {% if plumber.availability_status == 'available' %}success{% elif plumber.availability_status == 'busy' %}accent{% else %}neutral{% endif %}">
-                    {{ plumber.availability_status.replace('_', ' ').title() }}
-                </span>
+        <article class="plumber-card marketplace-card marketplace-plumber-card overflow-hidden">
+            <div class="overflow-hidden rounded-t-2xl">
+                <img
+                    src="{{ image_urls.plumber_at_work if loop.index0 % 2 == 0 else image_urls.tools }}"
+                    alt="{{ plumber.name }} at work"
+                    loading="lazy"
+                    class="h-24 w-full object-cover opacity-80"
+                    onerror="this.style.display='none'"
+                >
             </div>
-            <div class="plumber-body">
-                <h3>{{ plumber.name }}</h3>
-                <p class="muted">{{ plumber.specialties or "General plumbing" }}</p>
-                <div class="detail-stack">
-                    <div>{{ ui_icon("location") }} <span>{{ plumber.service_area or "Multiple areas" }}</span></div>
-                    <div>{{ ui_icon("track") }} <span>{{ plumber.years_of_experience }} years experience</span></div>
-                    <div>{{ ui_icon("charge") }} <span>Rs. {{ plumber.charges|int }} visit charge</span></div>
-                    <div>{{ ui_icon("star") }} <span>{{ plumber.average_rating or "New" }}{% if plumber.average_rating %}/5{% endif %}</span></div>
+            <div class="plumber-copy p-6">
+                <div class="plumber-top">
+                    <div class="relative h-16 w-16 shrink-0">
+                        <div class="h-16 w-16 overflow-hidden rounded-2xl ring-4 ring-white shadow-lg shadow-slate-900/10">
+                            {{ plumber_avatar(plumber.theme, 64) }}
+                        </div>
+                        <span class="absolute bottom-0 right-0 h-4 w-4 rounded-full bg-emerald-500 ring-2 ring-white"></span>
+                    </div>
+                    <span class="badge {% if plumber.availability_status == 'available' %}success{% elif plumber.availability_status == 'busy' %}accent{% else %}neutral{% endif %}">
+                        {{ plumber.availability_status.replace('_', ' ').title() }}
+                    </span>
                 </div>
-            </div>
-            <div class="plumber-actions">
-                <a class="btn-secondary" href="{{ url_for('plumber_profile', plumber_id=plumber.id) }}">View Profile</a>
-                <a class="btn-primary" href="{{ url_for('request_service', plumber_id=plumber.id) }}">Book Service</a>
+                <div class="plumber-body">
+                    <h3>{{ plumber.name }}</h3>
+                    <p class="muted">{{ plumber.specialties or "General plumbing" }}</p>
+                    <div class="detail-stack">
+                        <div class="flex items-center gap-2">
+                            {{ ui_icon("location", 16) }}
+                            <span>{{ plumber.service_area or "Multiple areas" }}</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            {{ ui_icon("track", 16) }}
+                            <span>{{ plumber.years_of_experience }} years experience</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            {{ ui_icon("currency-rupee", 16) }}
+                            <span>Rs. {{ plumber.charges|int }} visit charge</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            {{ ui_icon("star", 16) }}
+                            <span>{{ plumber.average_rating or "New" }}{% if plumber.average_rating %}/5{% endif %}</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="plumber-actions">
+                    <a class="btn-secondary" href="{{ url_for('plumber_profile', plumber_id=plumber.id) }}">View Profile</a>
+                    <a class="btn-primary" href="{{ url_for('request_service', plumber_id=plumber.id) }}">Book Service</a>
+                </div>
             </div>
         </article>
     {% else %}
-        <div class="empty-state">No plumbers match the current filters.</div>
+        {{ empty_state("No plumbers match the current filters.", "Try adjusting the search or service area filters.", "wrench", image_urls.tools, "Plumbing tools illustration") }}
     {% endfor %}
 </section>
 {% endblock %}

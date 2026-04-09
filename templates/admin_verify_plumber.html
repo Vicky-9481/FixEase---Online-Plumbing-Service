@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% from "_icons.html" import ui_icon %}
+{% from "_icons.html" import ui_icon, empty_state %}
 
 {% block title %}Verify Plumber{% endblock %}
 
@@ -108,13 +108,13 @@
                 {% endfor %}
             </div>
         {% else %}
-            <div class="empty-state">No other plumbers are awaiting verification.</div>
+            {{ empty_state("No other plumbers are awaiting verification.", "New plumber applications will appear here once they are submitted.", "shield", image_urls.tools, "Verification illustration") }}
         {% endif %}
     </article>
 </section>
 
 {% if related_requests %}
-<section class="panel reveal" style="margin-top: 16px;">
+<section class="panel reveal mt-6">
     <div class="section-head">
         <div>
             <span class="eyebrow">History</span>

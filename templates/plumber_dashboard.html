@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% from "_icons.html" import ui_icon %}
+{% from "_icons.html" import ui_icon, empty_state %}
 
 {% block title %}Plumber Dashboard{% endblock %}
 
@@ -18,10 +18,10 @@
 </section>
 
 <section class="stats-grid grid-4 reveal">
-    <article class="stat-card"><span class="stat-label">Open Jobs</span><strong>{{ stats.open_jobs }}</strong></article>
-    <article class="stat-card"><span class="stat-label">Active Jobs</span><strong>{{ stats.active_jobs }}</strong></article>
-    <article class="stat-card"><span class="stat-label">Completed Jobs</span><strong>{{ stats.completed_jobs }}</strong></article>
-    <article class="stat-card"><span class="stat-label">Ratings</span><strong>{{ plumber.average_rating or "New" }}{% if plumber.average_rating %}/5{% endif %}</strong></article>
+    <article class="stat-card relative overflow-hidden"><span class="stat-label">Open Jobs</span><strong>{{ stats.open_jobs }}</strong><span class="absolute right-4 top-4 flex h-10 w-10 items-center justify-center rounded-2xl bg-blue-100 text-blue-600">{{ ui_icon("document", 20) }}</span></article>
+    <article class="stat-card relative overflow-hidden"><span class="stat-label">Active Jobs</span><strong>{{ stats.active_jobs }}</strong><span class="absolute right-4 top-4 flex h-10 w-10 items-center justify-center rounded-2xl bg-amber-100 text-amber-600">{{ ui_icon("spinner", 20, class_="animate-spin") }}</span></article>
+    <article class="stat-card relative overflow-hidden"><span class="stat-label">Completed Jobs</span><strong>{{ stats.completed_jobs }}</strong><span class="absolute right-4 top-4 flex h-10 w-10 items-center justify-center rounded-2xl bg-emerald-100 text-emerald-600">{{ ui_icon("check-circle", 20) }}</span></article>
+    <article class="stat-card relative overflow-hidden"><span class="stat-label">Ratings</span><strong>{{ plumber.average_rating or "New" }}{% if plumber.average_rating %}/5{% endif %}</strong><span class="absolute right-4 top-4 flex h-10 w-10 items-center justify-center rounded-2xl bg-purple-100 text-purple-600">{{ ui_icon("star", 20) }}</span></article>
 </section>
 
 <section class="dashboard-split reveal">
@@ -70,8 +70,18 @@
         <div class="notification-stack">
             {% for note in notifications %}
                 <div class="mini-notification {% if not note.is_read %}unread{% endif %}">
-                    <span class="note-badge {% if 'accepted' in note.message|lower %}blue{% elif 'assigned' in note.message|lower %}teal{% else %}gray{% endif %}">
-                        Update
+                    <span class="note-badge flex h-7 w-7 items-center justify-center rounded-lg {% if 'accepted' in note.message|lower %}bg-blue-100 text-blue-600{% elif 'assigned' in note.message|lower %}bg-teal-100 text-teal-600{% elif 'completed' in note.message|lower %}bg-emerald-100 text-emerald-600{% elif 'message' in note.message|lower %}bg-purple-100 text-purple-600{% else %}bg-amber-100 text-amber-600{% endif %}">
+                        {% if 'accepted' in note.message|lower %}
+                            {{ ui_icon("check-circle", 16) }}
+                        {% elif 'assigned' in note.message|lower %}
+                            {{ ui_icon("wrench", 16) }}
+                        {% elif 'completed' in note.message|lower %}
+                            {{ ui_icon("document", 16) }}
+                        {% elif 'message' in note.message|lower %}
+                            {{ ui_icon("chat", 16) }}
+                        {% else %}
+                            {{ ui_icon("emergency-bell", 16) }}
+                        {% endif %}
                     </span>
                     <div class="note-body">
                         <strong>{{ note.title or "Notification" }}</strong>
@@ -79,7 +89,7 @@
                     </div>
                 </div>
             {% else %}
-                <div class="empty-state">No recent updates.</div>
+                {{ empty_state("No recent updates.", "New notifications and job updates will appear here once they arrive.", "chat", image_urls.tools, "Updates illustration") }}
             {% endfor %}
         </div>
     </article>

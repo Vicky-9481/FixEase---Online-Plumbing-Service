@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% from "_icons.html" import ui_icon %}
+{% from "_icons.html" import ui_icon, empty_state %}
 
 {% block title %}{{ plumber.name }}{% endblock %}
 
@@ -26,12 +26,12 @@
 <section class="split-grid reveal">
     <div class="panel">
         <div class="profile-photo large">{{ plumber.name[:1].upper() }}{{ plumber.name[1:2].upper() }}</div>
-        <div class="profile-meta" style="margin-top: 1rem;">
+        <div class="profile-meta mt-4">
             <span class="badge {% if plumber.availability_status == 'available' %}success{% else %}neutral{% endif %}">{{ plumber.availability_status.replace('_', ' ').title() }}</span>
             <span class="badge neutral">{{ plumber.service_area or "Service area not set" }}</span>
             <span class="badge accent">{{ plumber.specialties or "General plumbing" }}</span>
         </div>
-        <div class="stack" style="margin-top: 1rem;">
+        <div class="stack mt-4">
             <div class="inline-note">{{ ui_icon("location") }} {{ plumber.service_area or "Service area not set" }}</div>
             <div class="inline-note">{{ ui_icon("specialty") }} {{ plumber.specialties or "General plumbing" }}</div>
             <div class="inline-note">{{ ui_icon("profile") }} License: {{ plumber.license_number or "Not added" }}</div>
@@ -48,7 +48,7 @@
         </div>
         {% if related_requests %}
             {% for item in related_requests %}
-                <article class="summary-card" style="margin-bottom: 0.75rem;">
+                <article class="summary-card mb-3">
                     <div class="toolbar">
                         <strong>Request #{{ item.id }}</strong>
                         <span class="status {{ item.status }}">{{ status_styles[item.status] }}</span>
@@ -57,7 +57,7 @@
                 </article>
             {% endfor %}
         {% else %}
-            <div class="empty-state">No public request history available for this plumber yet.</div>
+            {{ empty_state("No public request history available for this plumber yet.", "Bookings for this plumber will appear here once customers submit them.", "document", image_urls.tools, "Request history illustration") }}
         {% endif %}
     </div>
 </section>

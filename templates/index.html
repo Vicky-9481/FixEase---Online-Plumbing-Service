@@ -1,10 +1,13 @@
 {% extends "base.html" %}
-{% from "_icons.html" import ui_icon %}
+{% from "_icons.html" import ui_icon, plumber_illustration %}
 
 {% block title %}FixEase | Smart Plumbing Service Platform{% endblock %}
 
 {% block content %}
-<section class="hero-banner home-banner reveal">
+<section
+    class="hero-banner home-banner reveal min-h-[280px] items-center px-8 py-10 rounded-2xl"
+    style="background-image: linear-gradient(rgba(0,0,0,0.55), rgba(0,0,0,0.55)), url('{{ image_urls.hero_bg }}'); background-size: cover; background-position: center;"
+>
     <div class="hero-copy">
         <span class="eyebrow">{{ app_tagline or "Smart Plumbing Service Platform" }}</span>
         <h1>FixEase connects customers with trusted plumbing help.</h1>
@@ -13,6 +16,11 @@
             <a class="btn-primary" href="{{ url_for('request_service') }}">Book Service</a>
             <a class="btn-secondary" href="{{ url_for('view_plumbers') }}">Browse Plumbers</a>
             <a class="btn-secondary" href="{{ url_for('about') }}">About Us</a>
+        </div>
+    </div>
+    <div class="hero-visual flex items-center justify-center">
+        <div class="w-full max-w-md rounded-[2rem] bg-gradient-to-br from-amber-50 via-orange-50 to-yellow-50 p-4 shadow-[0_24px_80px_rgba(217,119,6,0.14)] ring-1 ring-amber-100">
+            {{ plumber_illustration() }}
         </div>
     </div>
     <div class="hero-metrics">
@@ -31,6 +39,53 @@
     </div>
 </section>
 
+<section class="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-4 reveal">
+    <article class="rounded-3xl bg-white/90 p-5 shadow-[0_18px_50px_rgba(15,23,42,0.08)] ring-1 ring-slate-100">
+        <div class="flex items-center justify-between gap-4">
+            <div>
+                <p class="text-sm font-semibold uppercase tracking-[0.22em] text-slate-500">Total Plumbers</p>
+                <strong class="mt-2 block text-3xl font-extrabold text-slate-900">{{ stats.plumbers }}</strong>
+            </div>
+            <span class="flex h-11 w-11 items-center justify-center rounded-2xl bg-teal-100 text-teal-600">
+                {{ ui_icon("person", 22) }}
+            </span>
+        </div>
+    </article>
+    <article class="rounded-3xl bg-white/90 p-5 shadow-[0_18px_50px_rgba(15,23,42,0.08)] ring-1 ring-slate-100">
+        <div class="flex items-center justify-between gap-4">
+            <div>
+                <p class="text-sm font-semibold uppercase tracking-[0.22em] text-slate-500">Jobs Completed</p>
+                <strong class="mt-2 block text-3xl font-extrabold text-slate-900">{{ stats.completed_jobs }}</strong>
+            </div>
+            <span class="flex h-11 w-11 items-center justify-center rounded-2xl bg-amber-100 text-amber-600">
+                {{ ui_icon("check-circle", 22) }}
+            </span>
+        </div>
+    </article>
+    <article class="rounded-3xl bg-white/90 p-5 shadow-[0_18px_50px_rgba(15,23,42,0.08)] ring-1 ring-slate-100">
+        <div class="flex items-center justify-between gap-4">
+            <div>
+                <p class="text-sm font-semibold uppercase tracking-[0.22em] text-slate-500">Cities Covered</p>
+                <strong class="mt-2 block text-3xl font-extrabold text-slate-900">{{ stats.cities_covered }}</strong>
+            </div>
+            <span class="flex h-11 w-11 items-center justify-center rounded-2xl bg-blue-100 text-blue-600">
+                {{ ui_icon("location", 22) }}
+            </span>
+        </div>
+    </article>
+    <article class="rounded-3xl bg-white/90 p-5 shadow-[0_18px_50px_rgba(15,23,42,0.08)] ring-1 ring-slate-100">
+        <div class="flex items-center justify-between gap-4">
+            <div>
+                <p class="text-sm font-semibold uppercase tracking-[0.22em] text-slate-500">Avg Rating</p>
+                <strong class="mt-2 block text-3xl font-extrabold text-slate-900">{{ stats.avg_rating }}</strong>
+            </div>
+            <span class="flex h-11 w-11 items-center justify-center rounded-2xl bg-purple-100 text-purple-600">
+                {{ ui_icon("star", 22) }}
+            </span>
+        </div>
+    </article>
+</section>
+
 <section class="card section-card reveal">
     <div class="section-head">
         <div>
@@ -41,7 +96,12 @@
     <div class="step-grid">
         {% for step in steps %}
             <article class="step-card numbered">
-                <span class="step-number">{{ step.number }}</span>
+                <div class="flex items-start justify-between gap-4">
+                    <div class="flex h-16 w-16 items-center justify-center rounded-2xl ring-1 {{ step.bg }}">
+                        {{ ui_icon(step.icon, 32) }}
+                    </div>
+                    <span class="step-number">{{ step.number }}</span>
+                </div>
                 <h3>{{ step.title }}</h3>
                 <p>{{ step.description }}</p>
             </article>
@@ -58,10 +118,25 @@
     </div>
     <div class="service-grid">
         {% for service in services %}
-            <article class="service-card">
-                <span class="service-icon">{{ ui_icon(service.icon) }}</span>
-                <h3>{{ service.title }}</h3>
-                <p>{{ service.description }}</p>
+            <article class="service-card overflow-hidden">
+                <div class="overflow-hidden rounded-t-2xl">
+                    <img
+                        src="{{ image_urls['pipe_repair'] if service.title == 'Pipe Repair' else image_urls['tap_faucet'] if service.title == 'Taps & Faucets' else image_urls['drain'] if service.title == 'Drain Cleaning' else image_urls['water_heater'] if service.title == 'Water Heaters' else image_urls['bathroom'] if service.title == 'Bathroom Fitting' else image_urls['emergency'] }}"
+                        alt="{{ service.title }} plumbing photo"
+                        loading="lazy"
+                        class="h-36 w-full object-cover"
+                        onerror="this.style.display='none'"
+                    >
+                </div>
+                <div class="service-copy">
+                    <span class="service-icon flex h-12 w-12 items-center justify-center rounded-lg bg-{{ service.tone }}-100 text-{{ service.tone }}-600">
+                        {{ ui_icon(service.icon, 24) }}
+                    </span>
+                    <div>
+                        <h3>{{ service.title }}</h3>
+                        <p>{{ service.description }}</p>
+                    </div>
+                </div>
             </article>
         {% endfor %}
     </div>
@@ -77,7 +152,9 @@
     <div class="feature-grid">
         {% for feature in highlights %}
             <article class="feature-card">
-                <span class="highlight-icon">{{ ui_icon(feature.icon) }}</span>
+                <span class="highlight-icon flex h-10 w-10 items-center justify-center rounded-2xl bg-{{ feature.tone }}-100 text-{{ feature.tone }}-600">
+                    {{ ui_icon(feature.icon, 20) }}
+                </span>
                 <h3>{{ feature.title }}</h3>
                 <p>{{ feature.description }}</p>
             </article>

@@ -62,12 +62,17 @@
     <section class="profile-main">
         <article class="card form-card">
             <div class="section-head">
-                <div>
-                    <span class="eyebrow">Profile</span>
+                <div class="flex items-center gap-3">
+                    <span class="flex h-10 w-10 items-center justify-center rounded-2xl bg-blue-100 text-blue-600">
+                        {{ ui_icon("person", 20) }}
+                    </span>
+                    <div>
+                    <span class="eyebrow">PROFILE</span>
                     <h2>Personal Information</h2>
+                    </div>
                 </div>
             </div>
-            <form method="POST" action="{{ url_for('update_profile') }}" enctype="multipart/form-data" class="service-form">
+            <form method="POST" action="{{ url_for('update_profile') }}" enctype="multipart/form-data" class="form-container service-form">
                 <div class="form-grid two-col">
                     <div>
                         <label for="name">Name</label>
@@ -108,12 +113,17 @@
 
         <article class="card form-card">
             <div class="section-head">
-                <div>
+                <div class="flex items-center gap-3">
+                    <span class="flex h-10 w-10 items-center justify-center rounded-2xl bg-slate-100 text-slate-600">
+                        {{ ui_icon("padlock", 20) }}
+                    </span>
+                    <div>
                     <span class="eyebrow">Security</span>
                     <h2>Change Password</h2>
+                    </div>
                 </div>
             </div>
-            <form method="POST" action="{{ url_for('update_password') }}" class="service-form">
+            <form method="POST" action="{{ url_for('update_password') }}" class="form-container service-form">
                 <div class="form-grid two-col">
                     <div>
                         <label for="current_password">Current Password</label>
